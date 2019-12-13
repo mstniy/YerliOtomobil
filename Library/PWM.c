@@ -1,26 +1,26 @@
 #include "PWM.h"
 
 void PWM_Init() {
-	uint32_t ioconRegisterValue = IOCON_RED_RGB;
+	/*uint32_t ioconRegisterValue = IOCON_RED_RGB;
 	ioconRegisterValue |= 0x3;
 	ioconRegisterValue &= ~(1 << 2);
-	IOCON_RED_RGB = ioconRegisterValue;
+	IOCON_RED_RGB = ioconRegisterValue;*/
 	
 	PCONP |= (1 << 5 | 1 << 6);
 	
 	//Enable PWM output for corresponding pin.
 	
-	PWMX->TCR = 1 << 1;
+	PWM0->TCR = 1 << 1;
 	
-	PWMX->PR = 9;
+	PWM0->PR = 9;
 	
 	PWM0->MR0 = (PERIPHERAL_CLOCK_FREQUENCY / 1000000) * 20 * 1000;
 	
-	PWMX->MCR = 1 << 1;
+	PWM0->MCR = 1 << 1;
 	
-	PWMX->LER |= 1 << 0;
+	PWM0->LER |= 1 << 0;
 	
-	PWMX->TCR = (1 << 0 | 1 << 3);
+	PWM0->TCR = (1 << 0 | 1 << 3);
 
 	//Clear pending for PWM0
 	
@@ -34,7 +34,7 @@ void PWM_Init() {
 void PWM_Cycle_Rate(uint32_t period_In_Cycles) {
 	PWM0->MR0 = (PERIPHERAL_CLOCK_FREQUENCY / 1000000) * period_In_Cycles * 1000;
 	
-	PWMX->LER |= 1 << 0;
+	PWM0->LER |= 1 << 0;
 }
 
 void PWM_Write(uint32_t T_ON) {	
