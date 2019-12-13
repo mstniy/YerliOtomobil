@@ -3,7 +3,7 @@
  * Auto generated Run-Time-Environment Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'LAB_007' 
+ * Project: 'YerliOtomobil' 
  * Target:  'NXP_LPC4088' 
  */
 
