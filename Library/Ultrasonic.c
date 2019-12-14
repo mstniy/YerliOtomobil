@@ -3,19 +3,22 @@
 uint32_t ultrasonicSensorRisingCaptureTime;
 uint32_t ultrasonicSensorFallingCaptureTime;
 
-uint32_t ultrasonicSensorDuration = 0;
-uint32_t ultrasonicSensorDistance = 0;
 uint8_t ultrasonicSensorNewDataAvailable = 0;
 
 uint8_t ultrasonicSensorTriggerStart = 0;
 uint8_t ultrasonicSensorCaptureRisingEdge = 0;
 
+static void Ultrasonic_Trigger_Timer_Init();
+static void Ultrasonic_Capture_Timer_Init();
+
 void Ultrasonic_Init() {
 	IOCON_TRIGGER |= 0x03;
 	IOCON_ECHO |= 0x03;
+	Ultrasonic_Trigger_Timer_Init();
+	Ultrasonic_Capture_Timer_Init();
 }
 
-void Ultrasonic_Trigger_Timer_Init() {
+static void Ultrasonic_Trigger_Timer_Init() {
 	//Turn on Timer2.
 	
 	//Change the mode of Timer2 to Timer Mode.
@@ -35,7 +38,7 @@ void Ultrasonic_Trigger_Timer_Init() {
 	NVIC_ClearPendingIRQ(TIMER2_IRQn);
 }
 
-void Ultrasonic_Capture_Timer_Init() {
+static void Ultrasonic_Capture_Timer_Init() {
 	//Turn on Timer3
 	
 	//Change the mode of Timer3 to Timer Mode
