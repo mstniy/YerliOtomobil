@@ -32,18 +32,15 @@ typedef struct
   volatile	uint32_t CTCR;
 } PWM_TypeDef;
 
-//0x00000000 is a dummy value, write the correct address
-#define IOCON_MOTOR_SPEED_ADDRESS	0x00000000
-#define IOCON_MOTOR_SPEED	*((volatile uint32_t*)(IOCON_MOTOR_SPEED_ADDRESS))
+#define IOCON_MOTOR_0_PWM	((volatile uint32_t*)0x4002C088)
+#define IOCON_MOTOR_1_PWM	((volatile uint32_t*)0x4002C08C)
+#define IOCON_MOTOR_2_PWM	((volatile uint32_t*)0x4002C094)
+#define IOCON_MOTOR_3_PWM	((volatile uint32_t*)0x4002C098)
 
-#define PWM0_BASE	0x40014000
-#define PWM1_BASE	0x40018000
-
-#define PWM0	((PWM_TypeDef*) PWM0_BASE)
-#define PWM1	((PWM_TypeDef*) PWM1_BASE)
+#define PWM0	((PWM_TypeDef*) 0x40014000)
+#define PWM1	((PWM_TypeDef*) 0x40018000)
 
 void PWM_Init(void);
-void PWM_Cycle_Rate(uint32_t period_In_Cycles);
-void PWM_Write(uint32_t T_ON);
+void PWM_Write(int motor_index, uint32_t T_ON);
 
 #endif

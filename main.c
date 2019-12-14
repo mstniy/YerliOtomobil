@@ -5,11 +5,9 @@
 
 void init() {
 	Joystick_Init();
+	PWM_Init();
 	
 	//Initialize GPIO pins
-	
-	PWM_Init();
-	PWM_Write(0);
 }
 
 void update() {
