@@ -2,25 +2,45 @@ table 84. type d i/o control registers: func values and pin functions
 quickstart board rev A sayfa 9 : pXX=pX_XX bağlantıları
 
 sol ön   motor pwm : p30=p1_2  : pwm0[1]
+  iocon:0x4002 C088
 sağ ön   motor pwm : p29=p1_3  : pwm0[2]
+  iocon:0x4002 C08C
 sol arka motor pwm : p28=p1_5  : pwm0[3]
+  iocon:0x4002 C094
 sağ arka motor pwm : p27=p1_6  : pwm0[4]
+  iocon:0x4002 C098
 
 sol ön   motor enable : p5=p1_24
+  iocon:0x4002 C0E0
 sağ ön   motor enable : p6=p1_23
+  iocon:0x4002 C0DC
 sol arka motor enable : p7=p1_20
+  iocon:0x4002 C0D0
 sağ arka motor enable : p8=p0_21
+  iocon:0x4002 C054
 
 sol  led : p23=p2_10
+  iocon:0x4002 C128
 sağ  led : p24=p1_12
+  iocon:0x4002 C0B0
 ön   led : p25=p1_11
+  iocon:0x4002 C0AC
 arka led : p26=p1_7
+  iocon:0x4002 C09C
 
 ultrason 1 trig: p12=p0_8  : t2_mat2
+  iocon:0x4002 C020
 ultrason 1 echo: p15=p0_23 : t3_cap0
+  iocon:0x4002 C05C
 ultrason 2 trig: p11=p0_9  : t2_mat3
+  iocon:0x4002 C024
 ultrason 2 echo: p16=p0_24 : t3_cap1
+  iocon:0x4002 C060
 sol ldr        : p17=p0_25 : adc0[2]
+  iocon:0x4002 C064
 sağ ldr        : p18=p0_26 : adc0[3]
+  iocon:0x4002 C068
 uart tx        : p42=p0_2  : u3_txs
+  iocon:0x4002 C008
 uart px        : p41=p0_3  : u3_rxd
+  iocon:0x4002 C00C
