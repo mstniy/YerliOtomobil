@@ -41,6 +41,6 @@ typedef struct
 #define PWM1	((PWM_TypeDef*) 0x40018000)
 
 void PWM_Init(void);
-void PWM_Write(int motor_index, uint32_t T_ON);
+void PWM_Write(int motor_index, double T_ON);
 
 #endif
