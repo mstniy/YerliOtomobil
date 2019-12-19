@@ -40,6 +40,9 @@ typedef enum {
 #define PORT4_BASE		(GPIO_ADDRESS + 0x080)
 #define PORT5_BASE		(GPIO_ADDRESS + 0x0A0)
 
+volatile uint32_t* getIOCON(int a, int b);
+volatile GPIO_TypeDef* getGPIO(int a);
+
 void GPIO_DIR_Write(GPIO_TypeDef* PORT,uint32_t MASK,uint8_t value);
 void GPIO_PIN_Write(GPIO_TypeDef* PORT,uint32_t MASK,uint8_t value);
 uint32_t GPIO_PIN_Read(GPIO_TypeDef* PORT,uint32_t MASK);

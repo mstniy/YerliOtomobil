@@ -9,6 +9,8 @@ static void ioconSwitchToPWM(volatile uint32_t* iocon) {
 }
 
 void PWM_Init() {
+	int i;
+	
 	ioconSwitchToPWM(IOCON_MOTOR_0_PWM);
 	ioconSwitchToPWM(IOCON_MOTOR_1_PWM);
 	ioconSwitchToPWM(IOCON_MOTOR_2_PWM);
@@ -37,16 +39,17 @@ void PWM_Init() {
 	//Enable PWM0_IRQn (Interrupt Request)
 	*/
 	
-	for (int i=0; i<4; i++)
+	for (i=0; i<4; i++)
 		PWM_Write(0, 0);
 }
 
 void PWM_Write(int motor_index, double T_ON) {	
+	uint32_t new_mr;
 	if(T_ON > 1) {
 		T_ON = 1;
 	}
 	
-	uint32_t new_mr = (uint32_t)(PWM0->MR0 * T_ON);
+	new_mr = (uint32_t)(PWM0->MR0 * T_ON);
 	
 	if (new_mr == PWM0->MR0) {
 		new_mr++;
