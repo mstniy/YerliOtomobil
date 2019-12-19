@@ -41,19 +41,19 @@ void PWM_Init() {
 		PWM_Write(0, 0);
 }
 
-void PWM_Write(int motor_index, uint32_t T_ON) {	
-	if(T_ON > 100) {
-		T_ON = 100;
+void PWM_Write(int motor_index, double T_ON) {	
+	if(T_ON > 1) {
+		T_ON = 1;
 	}
 	
-	T_ON = (uint32_t)(((PWM0->MR0) * T_ON) / 100);
+	uint32_t new_mr = (uint32_t)(PWM0->MR0 * T_ON);
 	
-	if (T_ON == PWM0->MR0) {
-		T_ON++;
+	if (new_mr == PWM0->MR0) {
+		new_mr++;
 	}
-	if (motor_index == 0) PWM0->MR1 = T_ON;
-	if (motor_index == 1) PWM0->MR2 = T_ON;
-	if (motor_index == 2) PWM0->MR3 = T_ON;
-	if (motor_index == 3) PWM0->MR4 = T_ON;
+	if (motor_index == 0) PWM0->MR1 = new_mr;
+	if (motor_index == 1) PWM0->MR2 = new_mr;
+	if (motor_index == 2) PWM0->MR3 = new_mr;
+	if (motor_index == 3) PWM0->MR4 = new_mr;
 	PWM0->LER |= 1 << (motor_index+1);
 }
