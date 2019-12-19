@@ -1,26 +1,26 @@
 #include "LED.h"
 
+static void LED1_Init() {
+	GPIO_DIR_Write(LED1_PORT,LED1_MASK,OUTPUT);
+}
+
+static void LED2_Init() {
+	GPIO_DIR_Write(LED2_PORT,LED2_MASK,OUTPUT);
+}
+
+static void LED3_Init() {
+	GPIO_DIR_Write(LED3_PORT,LED3_MASK,OUTPUT);
+}
+
+static void LED4_Init() {
+	GPIO_DIR_Write(LED4_PORT,LED4_MASK,OUTPUT);
+}
+
 void LED_Init() {
 	LED1_Init();
 	LED2_Init();
 	LED3_Init();
 	LED4_Init();
-}
-
-void LED1_Init() {
-	GPIO_DIR_Write(LED1_PORT,LED1_MASK,OUTPUT);
-}
-
-void LED2_Init() {
-	GPIO_DIR_Write(LED2_PORT,LED2_MASK,OUTPUT);
-}
-
-void LED3_Init() {
-	GPIO_DIR_Write(LED3_PORT,LED3_MASK,OUTPUT);
-}
-
-void LED4_Init() {
-	GPIO_DIR_Write(LED4_PORT,LED4_MASK,OUTPUT);
 }
 
 void LED_ON() {

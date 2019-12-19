@@ -5,7 +5,7 @@
 
 #include "GPIO.h"
 
-#define JOYSTICK_PORT	PORT5
+#define JOYSTICK_PORT	GPIO_PORT5
 
 #define JOYSTICK_LEFT_MASK		((uint32_t) 1 << 0)
 #define JOYSTICK_DOWN_MASK		((uint32_t) 1 << 1)

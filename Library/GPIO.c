@@ -26,6 +26,3 @@ volatile uint32_t* getIOCON(int a, int b){
 	uint32_t offset = (a*32+b)*4;
 	return (volatile uint32_t*)(0x4002C000+offset);
 }
-volatile GPIO_TypeDef* getGPIO(int a){
-	return &((volatile GPIO_TypeDef*)0x20098000)[a];
-}

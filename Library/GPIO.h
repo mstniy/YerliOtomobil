@@ -24,24 +24,16 @@ typedef enum {
 } GPIO_Value;
 
 
-#define GPIO_ADDRESS	0x20098000
+#define GPIO_BASE	0x20098000
 
-#define PORT0	((GPIO_TypeDef*) PORT0_BASE)
-#define PORT1	((GPIO_TypeDef*) PORT1_BASE)
-#define PORT2	((GPIO_TypeDef*) PORT2_BASE)
-#define PORT3	((GPIO_TypeDef*) PORT3_BASE)
-#define PORT4	((GPIO_TypeDef*) PORT4_BASE)
-#define PORT5	((GPIO_TypeDef*) PORT5_BASE)
-
-#define PORT0_BASE		(GPIO_ADDRESS + 0x000)
-#define PORT1_BASE		(GPIO_ADDRESS + 0x020)
-#define PORT2_BASE		(GPIO_ADDRESS + 0x040)
-#define PORT3_BASE		(GPIO_ADDRESS + 0x060)
-#define PORT4_BASE		(GPIO_ADDRESS + 0x080)
-#define PORT5_BASE		(GPIO_ADDRESS + 0x0A0)
+#define GPIO_PORT0	((GPIO_TypeDef*) (GPIO_BASE + 0x000))
+#define GPIO_PORT1	((GPIO_TypeDef*) (GPIO_BASE + 0x020))
+#define GPIO_PORT2	((GPIO_TypeDef*) (GPIO_BASE + 0x040))
+#define GPIO_PORT3	((GPIO_TypeDef*) (GPIO_BASE + 0x060))
+#define GPIO_PORT4	((GPIO_TypeDef*) (GPIO_BASE + 0x080))
+#define GPIO_PORT5	((GPIO_TypeDef*) (GPIO_BASE + 0x0A0))
 
 volatile uint32_t* getIOCON(int a, int b);
-volatile GPIO_TypeDef* getGPIO(int a);
 
 void GPIO_DIR_Write(GPIO_TypeDef* PORT,uint32_t MASK,uint8_t value);
 void GPIO_PIN_Write(GPIO_TypeDef* PORT,uint32_t MASK,uint8_t value);
