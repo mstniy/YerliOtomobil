@@ -437,6 +437,11 @@
               <FileType>1</FileType>
               <FilePath>.\Library\Wait.c</FilePath>
             </File>
+            <File>
+              <FileName>Motors.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Library\Motors.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
