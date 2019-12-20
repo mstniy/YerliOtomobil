@@ -42,10 +42,14 @@ ultrason 2 trig: p11=p0_9  : t2_mat3
 ultrason 2 echo: p16=p0_24 : t3_cap1
   iocon:0x4002 C060
   
+Using T0_M1 for starting the conversion.
+;T0_M1 should match every 30 ms
 sol ldr        : p17=p0_25 : adc0[2]
-  iocon:0x4002 C064
+  iocon:0x4002C064
 sağ ldr        : p18=p0_26 : adc0[3]
   iocon:0x4002 C068
+potentiometer: p15=p0_23 : adc0[3]
+  iocon: 0x4002C060
   
 bluetooth module uart rx : p9=p0_0  : u3_rxd
   iocon:0x4002 C000
