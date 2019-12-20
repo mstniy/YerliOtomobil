@@ -3,9 +3,6 @@
 void PLL_Init() {
 	CCLKSEL = 0x01;
 	PCLKSEL = 0x04;
-	EMCCLKSEL = 0x00;
-	USBCLKSEL = 0x00;
-	SPIFICLKSEL = 0x00;
 }
 
 void PLL_Disable() {
@@ -13,16 +10,21 @@ void PLL_Disable() {
 }
 
 void PLL_Feed() {
-  PLLFEED = 0xAA;
+	PLLFEED = 0xAA;
 	PLLFEED = 0x55;
 }
 
 void PLL_Change_Source() {
-	CLKSRCSEL = 0x01;
+	// SELECT IRC CLOCK
+	CLKSRCSEL = 0x00;
 }
 
 void PLL_Change_Frequency() {
 	//Change PLL Frequency to 60MHz
+
+	// MSEL = 4, PSEL = 1 -> M = 5, P = 2, out = 12000000*5 = 60Mhz, ffc0 = 60Mhz*2*2 = 240Mhz, 150<240<350
+	// PLLCFG = 0100100
+	PLLCFG = 0x24;
 }
 
 void PLL_Enable() {
@@ -31,16 +33,13 @@ void PLL_Enable() {
 
 void PLL_Check_State() {
 	//Wait until the related PLL is locked onto the requested frequency
+	while(0 == (PLLSTAT & (1<<10)));
 }
 
 void PLL_Start() {
 	CCLKSEL = 0x0101;
 
 	PCLKSEL = 0x03;
-	
-	EMCCLKSEL = 0x01;
-	USBCLKSEL = 0x201;
-	SPIFICLKSEL = 0x02;
 }
 
 void PLL_Change_Configuration() {
