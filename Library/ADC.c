@@ -1,7 +1,7 @@
 #include "ADC.h"
 
 uint32_t ADC_Last[3];
-uint8_t ADC_New_Data_Available[3] = {};
+uint8_t ADC_New_Data_Available[3] = {0};
 
 enum AnalogChannels {LEFT_LDR, RIGHT_LDR, POTENTIOMETER};
 int channel_map[3] = {ADC_LEFT_CHANNEL, ADC_RIGHT_CHANNEL, ADC_POTENTIOMETER_CHANNEL};
@@ -9,7 +9,6 @@ int current_channel = LEFT_LDR;
 
 void ADC_Init() {
 	//Change the function value of pin to ADC.
-	uint32_t value;
 	LDR_LEFT_PIN_IOCON &= ~7;
 	LDR_LEFT_PIN_IOCON |= 1;
 
@@ -40,7 +39,7 @@ void ADC_Init() {
 	ADC->CR |= (1<<21);
 	
 	//Software controlled conversion
-	ADC->CR &= (~1<<16);
+	ADC->CR &= ~(1<<16);
 	
 	//Set channel bits CR_SEL
 	ADC->CR &= ~(0xff);
@@ -52,14 +51,15 @@ void ADC_Init() {
 
 	//Enable ADC_IRQn (Interrupt Request).
 	NVIC_EnableIRQ(ADC_IRQn);
+
 }
 
 
 void ADC_Start () {
 	//Write a code for starting A/D conversion on a rising edge on the TIMER 0 MATCH 1.
-	ADD->CR &= ~(7<<24);
-	ADD->CR |= (4<<24);
-	ADD->CR &= ~(1<<27);
+	ADC->CR &= ~(7<<24);
+	ADC->CR |= (4<<24);
+	ADC->CR &= ~(1<<27);
 }
 
 uint32_t ADC_GetLastValueOfLeftLDR() {
