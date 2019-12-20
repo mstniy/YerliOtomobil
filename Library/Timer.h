@@ -37,6 +37,6 @@ typedef struct
 #define	T0_M1_PIN_IOCON_ADDRESS	0x4002C0F4
 #define T0_M1_PIN_IOCON	*((volatile uint32_t*)(TIMER_PIN_IOCON_ADDRESS))
 
-void Timer_Init(void);
+void Timer0_Init(void);
 
 #endif
