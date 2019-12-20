@@ -3,40 +3,31 @@
 #include "Library/Joystick.h"
 #include "Library/LED.h"
 #include "Library/Motors.h"
+#include "Library/ADC.h"
+#include "Library/Timer.h"
 
 void init() {
 	//Joystick_Init();
 	Motors_Init();
 	LED_Init();
-	
 	LED_OFF();
-	
-	//Initialize GPIO pins
+	Timer0_Init();
+	ADC_Init();
+	ADC_Start();
 }
 
-void update() {
-	volatile int i;
-	LED1_On();
-	for (i=0; i<1000000; i++)
-		;
-	LED1_Off();
-	for (i=0; i<1000000; i++)
-		;
+void update_adc() {
+	uint32_t data;
+	if (ADC_New_Data_Available[POTENTIOMETER] == 0)
+			return ;
+	data = ADC_GetLastValueOfPotentiometer();
+	data=data;
 }
  
 int main() {
-		int i;
     init();
  
     while(1) {
-				Motors_Set_Scaled_Speed(3, 1);
-				for (i=0; i<15;i++)
-					update();
-				Motors_Set_Scaled_Speed(3, -1);
-				for (i=0; i<15;i++)
-					update();
-				Motors_Set_Scaled_Speed(3, 0);
-				for (i=0; i<15;i++)
-					update();
-    }
+			update_adc();
+		}
 }

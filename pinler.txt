@@ -48,7 +48,7 @@ sol ldr        : p17=p0_25 : adc0[2]
   iocon:0x4002C064
 sağ ldr        : p18=p0_26 : adc0[3]
   iocon:0x4002 C068
-potentiometer: p15=p0_23 : adc0[3]
+potentiometer: p15=p0_23 : adc0[0]
   iocon: 0x4002C060
   
 bluetooth module uart rx : p9=p0_0  : u3_rxd
