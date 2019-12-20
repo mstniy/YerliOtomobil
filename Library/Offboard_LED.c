@@ -20,76 +20,26 @@
 #define BACK_LED_IOCON_ADDRESS          0x4002C09C
 #define BACK_LED_IOCON                  *((volatile uint32_t*)(BACK_LED_IOCON_ADDRESS))
 
-static void LEFT_LED_Init() {
-	LEFT_LED_IOCON &= ~7;
-	GPIO_DIR_Write(LEFT_LED_PORT,LEFT_LED_MASK,OUTPUT);
-}
-
-static void RIGHT_LED_Init() {
-	RIGHT_LED_IOCON &= ~7;
-	GPIO_DIR_Write(RIGHT_LED_PORT,RIGHT_LED_MASK,OUTPUT);
-}
-
-static void FRONT_LED_Init() {
-	FRONT_LED_IOCON &= ~7;
-	GPIO_DIR_Write(FRONT_LED_PORT,FRONT_LED_MASK,OUTPUT);
-}
-
-static void BACK_LED_Init() {
-	BACK_LED_IOCON &= ~7;
-	GPIO_DIR_Write(BACK_LED_PORT,BACK_LED_MASK,OUTPUT);
-}
-
 void Offboard_LEDs_Init() {
-	RIGHT_LED_Init();
-	LEFT_LED_Init();
-	FRONT_LED_Init();
-	BACK_LED_Init();
-	Offboard_LEDs_OFF();
+	GPIO_PORT1->DIR |= RIGHT_LED_MASK | FRONT_LED_MASK | BACK_LED_MASK;
+	GPIO_PORT2->DIR |= LEFT_LED_MASK;
+	Offboard_LEDs_Set_State(0,0,0,0);
 }
 
-void RIGHT_LED_On() {
-	GPIO_PIN_Write(RIGHT_LED_PORT,RIGHT_LED_MASK,HIGH);
-}
-
-void LEFT_LED_On() {
-	GPIO_PIN_Write(LEFT_LED_PORT,LEFT_LED_MASK,HIGH);
-}
-
-void FRONT_LED_On() {
-	GPIO_PIN_Write(FRONT_LED_PORT,FRONT_LED_MASK,HIGH);
-}
-
-void BACK_LED_On() {
-	GPIO_PIN_Write(BACK_LED_PORT,BACK_LED_MASK,HIGH);
-}
-
-void Offboard_LEDs_ON() {
-	RIGHT_LED_On();
-	LEFT_LED_On();
-	FRONT_LED_On();
-	BACK_LED_On();
-}
-
-void RIGHT_LED_Off() {
-	GPIO_PIN_Write(RIGHT_LED_PORT,RIGHT_LED_MASK,LOW);
-}
-
-void LEFT_LED_Off() {
-	GPIO_PIN_Write(LEFT_LED_PORT,LEFT_LED_MASK,LOW);
-}
-
-void FRONT_LED_Off() {
-	GPIO_PIN_Write(FRONT_LED_PORT,FRONT_LED_MASK,LOW);
-}
-
-void BACK_LED_Off() {
-	GPIO_PIN_Write(BACK_LED_PORT,BACK_LED_MASK,LOW);
-}
-
-void Offboard_LEDs_OFF() {
-	RIGHT_LED_Off();
-	LEFT_LED_Off();
-	FRONT_LED_Off();
-	BACK_LED_Off();
+void Offboard_LEDs_Set_State(int left_on, int right_on, int front_on, int back_on) {
+	uint32_t port1shadow = GPIO_PORT1->PIN;
+	
+	if (left_on==1)    GPIO_PORT2->PIN |=  LEFT_LED_MASK;
+	if (left_on==0)    GPIO_PORT2->PIN &= ~LEFT_LED_MASK;
+	
+	if (right_on==1)   port1shadow     |=  RIGHT_LED_MASK;
+	if (right_on==0)   port1shadow     &= ~RIGHT_LED_MASK;
+	
+	if (front_on==1)   port1shadow     |=  FRONT_LED_MASK;
+	if (front_on==0)   port1shadow     &= ~FRONT_LED_MASK;
+	
+	if (back_on==1)    port1shadow     |=  BACK_LED_MASK;
+	if (back_on==0)    port1shadow     &= ~BACK_LED_MASK;
+	
+	GPIO_PORT1->PIN = port1shadow;
 }

@@ -5,16 +5,6 @@
 
 void Offboard_LEDs_Init(void);
 
-void Offboard_LEDs_ON(void);
-void LEFT_LED_On(void);
-void RIGHT_LED_On(void);
-void FRONT_LED_On(void);
-void BACK_LED_On(void);
-
-void Offboard_LEDs_OFF(void);
-void LEFT_LED_Off(void);
-void RIGHT_LED_Off(void);
-void FRONT_LED_Off(void);
-void BACK_LED_Off(void);
-
+// 1: turn on, 0: turn off, other: no change
+void Offboard_LEDs_Set_State(int left_on, int right_on, int front_on, int back_on);
 #endif
