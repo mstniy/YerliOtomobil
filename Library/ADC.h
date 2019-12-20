@@ -31,8 +31,6 @@ typedef struct {
 //Write the max value of ADC.
 #define ADC_MAX_VALUE 0x00000FFF
 
-//Define a ADC_CLKDIV variable for given ADC_CLOCK_FREQUENCY.
-//This ASSUMES 60 MHz PCLK frequency, with 2 ADC
 #define ADC_CLKDIV (PERIPHERAL_CLOCK_FREQUENCY/ADC_CLOCK_FREQUENCY)-1
 
 #define ADC_BASE	0x40034000
