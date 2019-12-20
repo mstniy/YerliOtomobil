@@ -1,70 +1,74 @@
 #include "LED.h"
 
-static void LED1_Init() {
-	GPIO_DIR_Write(LED1_PORT,LED1_MASK,OUTPUT);
+static void LEFT_LED_Init() {
+	LEFT_LED_IOCON &= ~7;
+	GPIO_DIR_Write(LEFT_LED_PORT,LEFT_LED_MASK,OUTPUT);
 }
 
-static void LED2_Init() {
-	GPIO_DIR_Write(LED2_PORT,LED2_MASK,OUTPUT);
+static void RIGHT_LED_Init() {
+	RIGHT_LED_IOCON &= ~7;
+	GPIO_DIR_Write(RIGHT_LED_PORT,RIGHT_LED_MASK,OUTPUT);
 }
 
-static void LED3_Init() {
-	GPIO_DIR_Write(LED3_PORT,LED3_MASK,OUTPUT);
+static void FRONT_LED_Init() {
+	FRONT_LED_IOCON &= ~7;
+	GPIO_DIR_Write(FRONT_LED_PORT,FRONT_LED_MASK,OUTPUT);
 }
 
-static void LED4_Init() {
-	GPIO_DIR_Write(LED4_PORT,LED4_MASK,OUTPUT);
+static void BACK_LED_Init() {
+	BACK_LED_IOCON &= ~7;
+	GPIO_DIR_Write(BACK_LED_PORT,BACK_LED_MASK,OUTPUT);
 }
 
 void LED_Init() {
-	LED1_Init();
-	LED2_Init();
-	LED3_Init();
-	LED4_Init();
+	RIGHT_LED_Init();
+	LEFT_LED_Init();
+	FRONT_LED_Init();
+	BACK_LED_Init();
 }
 
-void LED_ON() {
-	LED1_On();
-	LED2_On();
-	LED3_On();
-	LED4_On();
+void RIGHT_LED_On() {
+	GPIO_PIN_Write(RIGHT_LED_PORT,RIGHT_LED_MASK,HIGH);
 }
 
-void LED1_On() {
-	GPIO_PIN_Write(LED1_PORT,LED1_MASK,LOW);
+void LEFT_LED_On() {
+	GPIO_PIN_Write(LEFT_LED_PORT,LEFT_LED_MASK,HIGH);
 }
 
-void LED2_On() {
-	GPIO_PIN_Write(LED2_PORT,LED2_MASK,LOW);
+void FRONT_LED_On() {
+	GPIO_PIN_Write(FRONT_LED_PORT,FRONT_LED_MASK,HIGH);
 }
 
-void LED3_On() {
-	GPIO_PIN_Write(LED3_PORT,LED3_MASK,HIGH);
+void BACK_LED_On() {
+	GPIO_PIN_Write(BACK_LED_PORT,BACK_LED_MASK,HIGH);
 }
 
-void LED4_On() {
-	GPIO_PIN_Write(LED4_PORT,LED4_MASK,HIGH);
+void LEDs_ON() {
+	RIGHT_LED_On();
+	LEFT_LED_On();
+	FRONT_LED_On();
+	BACK_LED_On();
 }
 
-void LED_OFF() {
-	LED1_Off();
-	LED2_Off();
-	LED3_Off();
-	LED4_Off();
+void RIGHT_LED_Off() {
+	GPIO_PIN_Write(RIGHT_LED_PORT,RIGHT_LED_MASK,LOW);
 }
 
-void LED1_Off() {
-	GPIO_PIN_Write(LED1_PORT,LED1_MASK,HIGH);
+void LEFT_LED_Off() {
+	GPIO_PIN_Write(LEFT_LED_PORT,LEFT_LED_MASK,LOW);
 }
 
-void LED2_Off() {
-	GPIO_PIN_Write(LED2_PORT,LED2_MASK,HIGH);
+void FRONT_LED_Off() {
+	GPIO_PIN_Write(FRONT_LED_PORT,FRONT_LED_MASK,LOW);
 }
 
-void LED3_Off() {
-	GPIO_PIN_Write(LED3_PORT,LED3_MASK,LOW);
+void BACK_LED_Off() {
+	GPIO_PIN_Write(BACK_LED_PORT,BACK_LED_MASK,LOW);
 }
 
-void LED4_Off() {
-	GPIO_PIN_Write(LED4_PORT,LED4_MASK,LOW);
+void LEDs_OFF() {
+	RIGHT_LED_Off();
+	LEFT_LED_Off();
+	FRONT_LED_Off();
+	BACK_LED_Off();
 }
