@@ -20,13 +20,13 @@ typedef struct {
 
 //Write the IOCON address of Analog Pin
 #define	LDR_LEFT_PIN_IOCON_ADDRESS	0x4002C064	//p0_25; ADC0[2]
-#define LDR_LEFT_PIN_IOCON	*((volatile uint32_t*)(ANALOG_PIN_IOCON_ADDRESS))
+#define LDR_LEFT_PIN_IOCON	*((volatile uint32_t*)(LDR_LEFT_PIN_IOCON_ADDRESS))
 
 #define	LDR_RIGHT_PIN_IOCON_ADDRESS	0x4002C068 //p0_26; ADC0[3]
-#define LDR_RIGHT_PIN_IOCON	*((volatile uint32_t*)(ANALOG_PIN_IOCON_ADDRESS))
+#define LDR_RIGHT_PIN_IOCON	*((volatile uint32_t*)(LDR_RIGHT_PIN_IOCON_ADDRESS))
 
 #define	POTENTIOMETER_PIN_IOCON_ADDRESS	0x4002C05C //IOCON_P0_23 P0[23] adc0[0]
-#define POTENTIOMETER_PIN_IOCON	*((volatile uint32_t*)(ANALOG_PIN_IOCON_ADDRESS))
+#define POTENTIOMETER_PIN_IOCON	*((volatile uint32_t*)(POTENTIOMETER_PIN_IOCON_ADDRESS))
 
 //Write the max value of ADC.
 #define ADC_MAX_VALUE 0x00000FFF
