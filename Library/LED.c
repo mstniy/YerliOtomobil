@@ -25,6 +25,7 @@ void LED_Init() {
 	LEFT_LED_Init();
 	FRONT_LED_Init();
 	BACK_LED_Init();
+	LED_OFF();
 }
 
 void RIGHT_LED_On() {
@@ -43,7 +44,7 @@ void BACK_LED_On() {
 	GPIO_PIN_Write(BACK_LED_PORT,BACK_LED_MASK,HIGH);
 }
 
-void LEDs_ON() {
+void LED_ON() {
 	RIGHT_LED_On();
 	LEFT_LED_On();
 	FRONT_LED_On();
@@ -66,7 +67,7 @@ void BACK_LED_Off() {
 	GPIO_PIN_Write(BACK_LED_PORT,BACK_LED_MASK,LOW);
 }
 
-void LEDs_OFF() {
+void LED_OFF() {
 	RIGHT_LED_Off();
 	LEFT_LED_Off();
 	FRONT_LED_Off();

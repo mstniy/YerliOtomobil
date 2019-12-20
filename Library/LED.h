@@ -23,15 +23,15 @@
 #define BACK_LED_IOCON_ADDRESS          0x4002C09C
 #define BACK_LED_IOCON                  *((volatile uint32_t*)(BACK_LED_IOCON_ADDRESS))
 
-void LEDs_Init(void);
+void LED_Init(void);
 
-void LEDs_ON(void);
+void LED_ON(void);
 void LEFT_LED_On(void);
-void SAG_On(void);
+void RIGHT_LED_On(void);
 void FRONT_LED_On(void);
 void BACK_LED_On(void);
 
-void LEDs_OFF(void);
+void LED_OFF(void);
 void LEFT_LED_Off(void);
 void RIGHT_LED_Off(void);
 void FRONT_LED_Off(void);
