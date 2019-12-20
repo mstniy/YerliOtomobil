@@ -21,6 +21,8 @@ void LED_Init() {
 	LED2_Init();
 	LED3_Init();
 	LED4_Init();
+	
+	LED_OFF();
 }
 
 void LED_ON() {

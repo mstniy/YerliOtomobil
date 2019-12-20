@@ -33,14 +33,10 @@ sağ  led : p24=p1_12
 arka led : p26=p1_7
   iocon:0x4002 C09C
 
-ultrason 1 trig: p12=p0_8  : t2_mat2
+ultrason trig: p12=p0_8  : t2_mat2
   iocon:0x4002 C020
-ultrason 1 echo: p15=p0_23 : t3_cap0
+ultrason echo: p15=p0_23 : t3_cap0
   iocon:0x4002 C05C
-ultrason 2 trig: p11=p0_9  : t2_mat3
-  iocon:0x4002 C024
-ultrason 2 echo: p16=p0_24 : t3_cap1
-  iocon:0x4002 C060
   
 sol ldr        : p17=p0_25 : adc0[2]
   iocon:0x4002 C064
