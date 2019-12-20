@@ -2,6 +2,7 @@
 #define TIMER_H
 
 #include "LPC407x_8x_177x_8x.h"
+#include "SystemStructures.h"
 
 typedef struct
 {
@@ -35,8 +36,8 @@ typedef struct
 #define TIMER3	((TIMER_TypeDef*) TIMER3_BASE)
 
 #define	T0_M1_PIN_IOCON_ADDRESS	0x4002C0F4
-#define T0_M1_PIN_IOCON	*((volatile uint32_t*)(TIMER_PIN_IOCON_ADDRESS))
-
+#define T0_M1_PIN_IOCON	*((volatile uint32_t*)(T0_M1_PIN_IOCON_ADDRESS))
+	
 void Timer0_Init(void);
 
 #endif
