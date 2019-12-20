@@ -33,7 +33,8 @@ typedef struct {
 #define ADC_CLKDIV 59
 
 #define ADC_BASE	0x40034000
-#define ADC	((ADC_TypeDef*) ADC_BASE)
+#define ADC_LEFT	((ADC_TypeDef*) ADC_BASE)
+#define ADC_RIGHT	((ADC_TypeDef*) ADC_BASE)
 
 extern uint32_t ADC_Last[];
 extern uint8_t ADC_New_Data_Available[];
