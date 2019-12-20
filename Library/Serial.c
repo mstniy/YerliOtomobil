@@ -1,9 +1,10 @@
+
 #include "Serial.h"
 
 char serialReceivedCharacter = 0;
 uint8_t serialNewDataAvailable = 0;
 char* serialTransmitData = 0;
-uint8_t serialTransmitCompleted = 0;
+uint8_t serialTransmitCompleted = 1;
 
 
 void Serial_Init() {
@@ -11,12 +12,12 @@ void Serial_Init() {
 	//Change the function of TX and RX pins for UART.
 	temp = Serial_UART_TX_PIN;
 	temp &= ~7;
-	temp &= 1;
-	 Serial_UART_TX_PIN = temp;
+	temp |= 1;
+	Serial_UART_TX_PIN = temp;
 
 	temp = Serial_UART_RX_PIN;
 	temp &= ~7;
-	temp &= 1;
+	temp |= 1;
 	Serial_UART_RX_PIN = temp;
 
 	//Turn on UART0.
@@ -34,7 +35,7 @@ void Serial_Init() {
 	Serial_UART->FDR = (5 << 0) | (7 << 4);
 
 	//Write correct code for disabling the access to Divisor Latches.
-	Serial_UART->LCR &= (1 << 7); // DLAB=0
+	Serial_UART->LCR &= ~(1 << 7); // DLAB=0
 
 	//Change LCR register value for 8-bit character transfer, 1 stop bits and Even Parity.
 	temp = Serial_UART->LCR;
@@ -47,7 +48,7 @@ void Serial_Init() {
 
 	//Enable UART0_IRQn Interrupt.
 	NVIC_EnableIRQ(UART0_IRQn);
-	NVIC_ClearPending(UART0_IRQn);
+	NVIC_ClearPendingIRQ(UART0_IRQn);
 	
 	//Set UART0_IRQn Priority to 5.
 	NVIC_SetPriority(UART0_IRQn, 5);
