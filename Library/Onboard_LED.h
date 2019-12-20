@@ -6,16 +6,7 @@
 
 void Onboard_LEDs_Init(void);
 
-void Onboard_LEDs_ON(void);
-void LED1_On(void);
-void LED2_On(void);
-void LED3_On(void);
-void LED4_On(void);
-
-void Onboard_LEDs_OFF(void);
-void LED1_Off(void);
-void LED2_Off(void);
-void LED3_Off(void);
-void LED4_Off(void);
+// 1: turn on, 0: turn off, other: no change
+void Onboard_LEDs_Set_State(int one_on, int two_on, int three_on, int four_on);
 
 #endif
