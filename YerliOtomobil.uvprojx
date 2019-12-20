@@ -423,11 +423,6 @@
               <FilePath>.\Library\Timer.c</FilePath>
             </File>
             <File>
-              <FileName>Ultrasonic.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Library\Ultrasonic.c</FilePath>
-            </File>
-            <File>
               <FileName>Wait.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Library\Wait.c</FilePath>
@@ -446,6 +441,11 @@
               <FileName>Onboard_LED.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Library\Onboard_LED.c</FilePath>
+            </File>
+            <File>
+              <FileName>Ultrasonic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Library\Ultrasonic.c</FilePath>
             </File>
           </Files>
         </Group>
