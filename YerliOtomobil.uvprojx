@@ -433,6 +433,16 @@
               <FilePath>.\Library\Motors.c</FilePath>
             </File>
             <File>
+              <FileName>Ultrasonic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Library\Ultrasonic.c</FilePath>
+            </File>
+            <File>
+              <FileName>ADC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Library\ADC.c</FilePath>
+            </File>
+            <File>
               <FileName>Offboard_LED.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Library\Offboard_LED.c</FilePath>
@@ -441,11 +451,6 @@
               <FileName>Onboard_LED.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Library\Onboard_LED.c</FilePath>
-            </File>
-            <File>
-              <FileName>Ultrasonic.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Library\Ultrasonic.c</FilePath>
             </File>
           </Files>
         </Group>

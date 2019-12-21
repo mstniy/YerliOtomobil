@@ -4,16 +4,29 @@
 #include "Library/Offboard_LED.h"
 #include "Library/Onboard_LED.h"
 #include "Library/Motors.h"
+#include "Library/ADC.h"
+#include "Library/Timer.h"
 #include "Library/Ultrasonic.h"
 
 void init() {
 	Motors_Init();
-	Ultrasonic_Init();
+	Timer0_Init();
+	ADC_Init();
+	ADC_Start();
+  Ultrasonic_Init();
 	Offboard_LEDs_Init();
 	Onboard_LEDs_Init();
 	
 	Offboard_LEDs_Set_State(0, 0, 0, 0);
 	Onboard_LEDs_Set_State(0, 0, 0, 0);
+}
+
+void update_adc() {
+	uint32_t data;
+	if (ADC_New_Data_Available[POTENTIOMETER] == 0)
+			return ;
+	data = ADC_GetLastValueOfPotentiometer();
+	data=data;
 }
 
 void update_motor_test() {
