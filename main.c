@@ -8,6 +8,7 @@
 
 void init() {
 	Motors_Init();
+	Ultrasonic_Init();
 	Offboard_LEDs_Init();
 	Onboard_LEDs_Init();
 	
@@ -40,7 +41,7 @@ void update_led_test() {
 		;
 }
 
-/*void update_ultrasonic_test() {
+void update_ultrasonic_test() {
 	double dist_cm, scaled_speed;
 	if (ultrasonicSensorNewDataAvailable == 0)
 		return ;
@@ -62,12 +63,12 @@ void update_led_test() {
 	if (scaled_speed > 1)
 		scaled_speed = 1;
 	Motors_Set_Scaled_Speed(3, scaled_speed);
-}*/
+}
  
 int main() {
     init();
  
     while(1) {
-				update_led_test();
+				update_ultrasonic_test();
     }
 }
