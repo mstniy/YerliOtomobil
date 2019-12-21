@@ -413,11 +413,6 @@
               <FilePath>.\Library\External.c</FilePath>
             </File>
             <File>
-              <FileName>LED.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Library\LED.c</FilePath>
-            </File>
-            <File>
               <FileName>PLL.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Library\PLL.c</FilePath>
@@ -446,6 +441,16 @@
               <FileName>ADC.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Library\ADC.c</FilePath>
+            </File>
+            <File>
+              <FileName>Offboard_LED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Library\Offboard_LED.c</FilePath>
+            </File>
+            <File>
+              <FileName>Onboard_LED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Library\Onboard_LED.c</FilePath>
             </File>
           </Files>
         </Group>
