@@ -447,6 +447,11 @@
               <FileType>1</FileType>
               <FilePath>.\Library\Onboard_LED.c</FilePath>
             </File>
+            <File>
+              <FileName>ControllerLoop.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Library\ControllerLoop.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

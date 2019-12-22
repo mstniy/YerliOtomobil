@@ -7,10 +7,11 @@
 #include "Library/ADC.h"
 #include "Library/Timer.h"
 #include "Library/Ultrasonic.h"
+#include "Library/ControllerLoop.h"
 
 void init() {
 	Motors_Init();
-	//Controller_Loop_Init();
+	Controller_Loop_Init();
 	ADC_Init();
 	ADC_Start();
   Ultrasonic_Init();
@@ -77,11 +78,24 @@ void update_ultrasonic_test() {
 		scaled_speed = 1;
 	Motors_Set_Scaled_Speed(3, scaled_speed);
 }
+
+void update_empty() {
+	// Nothing here
+}
+
+void Controller_Update() {
+	static int cnt=0;
+	cnt += 1;
+	if (cnt%40==0)
+		Onboard_LEDs_Set_State(1,1,1,1);
+	if (cnt%40==20)
+		Onboard_LEDs_Set_State(0,0,0,0);
+}
  
 int main() {
     init();
  
     while(1) {
-				update_ultrasonic_test();
+				update_empty();
     }
 }
