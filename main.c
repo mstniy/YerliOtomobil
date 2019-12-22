@@ -10,7 +10,7 @@
 
 void init() {
 	Motors_Init();
-	Timer0_Init();
+	//Controller_Loop_Init();
 	ADC_Init();
 	ADC_Start();
   Ultrasonic_Init();

@@ -3,6 +3,7 @@
 
 #include "LPC407x_8x_177x_8x.h"
 
+#include "Timer.h"
 #include "SystemStructures.h"
 
 typedef struct {
