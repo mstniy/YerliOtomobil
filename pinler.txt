@@ -1,23 +1,28 @@
 table 84. type d i/o control registers: func values and pin functions
 quickstart board rev A sayfa 9 : pXX=pX_XX bağlantıları
 
-sol ön   motor pwm : p30=p1_2  : pwm0[1]
+sol ön   motor enable : p30=p1_2  : pwm0[1]
   iocon:0x4002 C088
-sağ ön   motor pwm : p29=p1_3  : pwm0[2]
+sağ ön   motor enable : p29=p1_3  : pwm0[2]
   iocon:0x4002 C08C
-sol arka motor pwm : p28=p1_5  : pwm0[3]
+sol arka motor enable : p28=p1_5  : pwm0[3]
   iocon:0x4002 C094
-sağ arka motor pwm : p27=p1_6  : pwm0[4]
+sağ arka motor enable : p27=p1_6  : pwm0[4]
   iocon:0x4002 C098
 
-sol ön   motor enable : p5=p1_24
+sol ön   motor in1 : p5=p1_24
   iocon:0x4002 C0E0
-sağ ön   motor enable : p6=p1_23
+sağ ön   motor in1 : p6=p1_23
   iocon:0x4002 C0DC
-sol arka motor enable : p7=p1_20
+sol arka motor in1 : p7=p1_20
   iocon:0x4002 C0D0
-sağ arka motor enable : p8=p0_21
+sağ arka motor in1 : p8=p0_21
   iocon:0x4002 C054
+
+sol ön   motor in2 : p31=p5_3
+sağ ön   motor in2 : p32=p5_2
+sol arka motor in2 : p33=p0_5
+sağ arka motor in2 : p34=p0_4
 
 sol  led : p23=p2_10
   iocon:0x4002 C128
@@ -28,19 +33,19 @@ sağ  led : p24=p1_12
 arka led : p26=p1_7
   iocon:0x4002 C09C
 
-ultrason 1 trig: p12=p0_8  : t2_mat2
-  iocon:0x4002 C020
-ultrason 1 echo: p15=p0_23 : t3_cap0
-  iocon:0x4002 C05C
-ultrason 2 trig: p11=p0_9  : t2_mat3
+ultrason trig: p11=p0_9  : t2_mat3
   iocon:0x4002 C024
-ultrason 2 echo: p16=p0_24 : t3_cap1
+ultrason echo: p16=p0_24 : t3_cap1
   iocon:0x4002 C060
   
+Using T0_M1 for starting the conversion.
+;T0_M1 should match every 30 ms: p1_29
 sol ldr        : p17=p0_25 : adc0[2]
-  iocon:0x4002 C064
+  iocon:0x4002C064
 sağ ldr        : p18=p0_26 : adc0[3]
   iocon:0x4002 C068
+potentiometer: p15=p0_23 : adc0[0]
+  iocon: 0x4002C060
   
 bluetooth module uart rx : p9=p0_0  : u3_rxd
   iocon:0x4002 C000

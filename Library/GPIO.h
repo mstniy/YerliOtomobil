@@ -33,6 +33,8 @@ typedef enum {
 #define GPIO_PORT4	((GPIO_TypeDef*) (GPIO_BASE + 0x080))
 #define GPIO_PORT5	((GPIO_TypeDef*) (GPIO_BASE + 0x0A0))
 
+//GPIO_TypeDef* const GPIO_PORTS[6] = {GPIO_PORT0, GPIO_PORT1, GPIO_PORT2, GPIO_PORT3, GPIO_PORT4, GPIO_PORT5};
+
 volatile uint32_t* getIOCON(int a, int b);
 
 void GPIO_DIR_Write(GPIO_TypeDef* PORT,uint32_t MASK,uint8_t value);

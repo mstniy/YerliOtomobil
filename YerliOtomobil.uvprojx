@@ -413,19 +413,19 @@
               <FilePath>.\Library\External.c</FilePath>
             </File>
             <File>
-              <FileName>LED.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Library\LED.c</FilePath>
-            </File>
-            <File>
               <FileName>PLL.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Library\PLL.c</FilePath>
             </File>
             <File>
-              <FileName>Timer.c</FileName>
+              <FileName>Wait.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Library\Timer.c</FilePath>
+              <FilePath>.\Library\Wait.c</FilePath>
+            </File>
+            <File>
+              <FileName>Motors.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Library\Motors.c</FilePath>
             </File>
             <File>
               <FileName>Ultrasonic.c</FileName>
@@ -433,9 +433,19 @@
               <FilePath>.\Library\Ultrasonic.c</FilePath>
             </File>
             <File>
-              <FileName>Wait.c</FileName>
+              <FileName>ADC.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Library\Wait.c</FilePath>
+              <FilePath>.\Library\ADC.c</FilePath>
+            </File>
+            <File>
+              <FileName>Offboard_LED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Library\Offboard_LED.c</FilePath>
+            </File>
+            <File>
+              <FileName>Onboard_LED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Library\Onboard_LED.c</FilePath>
             </File>
             <File>
               <FileName>Serial.c</FileName>

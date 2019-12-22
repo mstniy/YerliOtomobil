@@ -19,7 +19,7 @@ void GPIO_PIN_Write(GPIO_TypeDef* PORT,uint32_t MASK,uint8_t value) {
 }
 
 uint32_t GPIO_PIN_Read(GPIO_TypeDef* PORT,uint32_t MASK) {
-	return PORT->PIN &= MASK;
+	return PORT->PIN & MASK;
 }
 
 volatile uint32_t* getIOCON(int a, int b){
