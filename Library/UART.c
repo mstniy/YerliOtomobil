@@ -25,7 +25,7 @@ static const IRQn_Type UART_IRQn[] = {
     UART0_IRQn, 0, UART2_IRQn, UART3_IRQn
 };
 
-static void uart_set_baud_rate(LPC_UART_TypeDef* uart, uint32_t baud_rate) {
+static void uart_set_baud_rate(volatile LPC_UART_TypeDef* uart, uint32_t baud_rate) {
     uint8_t i = 0;
 
     uart->LCR |= (1 << 7); // DLAB = 1
@@ -86,23 +86,25 @@ void uart_write(uint8_t uart_id, const char *s) {
 }
 
 uint32_t uart_readline(uint8_t uart_id, const char* eol, char *s) {
-    uint32_t i, eol_len;
+    uint32_t i = 0, eol_len;
 
     eol_len = strlen(eol);
 
-    for (i = 0; ; i++) {
+    while(1) {
         // wait until RDR is set
-        while (!(UART[uart_id]->LSR & (1 << 0)))
-            ;
+      while (!(UART[uart_id]->LSR & (1 << 0)))
+          ;
 
 	    s[i++] = UART[uart_id]->RBR;
-
+			
         // s ends with eol
-        if (strncmp(s+i-eol_len, eol, eol_len) == 0) {
-            break;
-        }
+      if (strncmp(s+i-eol_len, eol, eol_len) == 0) {
+          break;
+      }
     }
 
     s[i] = '\0';
     return i;
 }
+
+

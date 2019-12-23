@@ -34,14 +34,34 @@ void update_bluetooth() {
 	n_read = uart_readline(3, "\r\n", buf);
 	uart_write(0, buf);
 }
+
+void init_hm10() {
+	uint32_t nread;
+	
+	uart_write(3, "AT\r\n");
+	uart_readline(3, "\r\n", buf); // OK
+	uart_write(0, buf);
+	
+	uart_write(3, "AT+NAMEYerliOtomobil\r\n");
+	nread = uart_readline(3, "\r\n", buf); // 
+	uart_readline(3, "\r\n", buf + nread); //
+	uart_write(0, buf);
+	
+	uart_write(3, "AT+RESET\r\n");
+	nread = uart_readline(3, "\r\n", buf); // 
+	uart_readline(3, "\r\n", buf + nread); //
+	uart_write(0, buf);
+}
  
 int main() {
 	char* s = "hello world\r\n";
 
     init();
 	uart_write(0, s);
+	
+	init_hm10();
 
 	while (1) {
-		update_echo();
+		update_bluetooth();
 	}
 }

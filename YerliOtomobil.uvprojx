@@ -448,14 +448,9 @@
               <FilePath>.\Library\Onboard_LED.c</FilePath>
             </File>
             <File>
-              <FileName>Serial.c</FileName>
+              <FileName>UART.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Library\Serial.c</FilePath>
-            </File>
-            <File>
-              <FileName>HM10.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Library\HM10.c</FilePath>
+              <FilePath>.\Library\UART.c</FilePath>
             </File>
           </Files>
         </Group>
