@@ -4,7 +4,8 @@
 #include "Timer.h"
 #include "SystemStructures.h"
 
-void Controller_Loop_Init(void);
-void Controller_Update(void);
+typedef void (*Controller_Callback)();
+
+void Controller_Loop_Init(Controller_Callback cb);
 
 #endif

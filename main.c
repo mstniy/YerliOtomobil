@@ -1,6 +1,5 @@
 #include "LPC407x_8x_177x_8x.h"
 
-#include "Library/GPIO.h"
 #include "Library/Offboard_LED.h"
 #include "Library/Onboard_LED.h"
 #include "Library/Motors.h"
@@ -11,6 +10,7 @@
 #include "Library/HM10.h"
 #include "Library/ControllerLoop.h"
 #include "testers.h"
+#include "controller.h"
 
 void init_hm10(void);
 void serial_recv_callback(volatile char* buffer, int old_size, int new_size);
@@ -18,7 +18,7 @@ void hm10_recv_callback(volatile char* buffer, int old_size, int new_size);
 
 void init() {
 	Motors_Init();
-	Controller_Loop_Init();
+	Controller_Loop_Init(Controller_Update);
 	ADC_Init();
 	ADC_Start();
 	Ultrasonic_Init();
@@ -47,15 +47,6 @@ void hm10_recv_callback(volatile char* buffer, int old_size, int new_size) {
 	uart_write_n(0, (const char *)(buffer+old_size), new_size-old_size);
 	uart_clear_buffer(3); // We don't explicitly read from hm10, so to keep the bufer from filling up, we clean it here.
 												// Note that once we implement the logic that reads commands from HM10, we will need to remove this line.
-}
-
-void Controller_Update() {
-	static int cnt=0;
-	cnt += 1;
-	if (cnt%40==0)
-		Onboard_LEDs_Set_State(1,1,1,1);
-	if (cnt%40==20)
-		Onboard_LEDs_Set_State(0,0,0,0);
 }
  
 int main() {

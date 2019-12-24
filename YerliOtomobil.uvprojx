@@ -392,6 +392,11 @@
               <FileType>1</FileType>
               <FilePath>.\testers.c</FilePath>
             </File>
+            <File>
+              <FileName>controller.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\controller.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

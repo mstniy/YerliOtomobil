@@ -2,6 +2,8 @@
 
 #define CONTROLLER_LOOP_PERIOD_MS 50
 
+static Controller_Callback controller_callback;
+
 static void Controller_Loop_Timer_Init() {
 	//Turn on Timer1.
 	PCONP |= 1<<2;
@@ -28,7 +30,8 @@ static void Controller_Loop_Start_Timer() {
 	TIMER1->TCR |= 1;
 }
 
-void Controller_Loop_Init() {
+void Controller_Loop_Init(Controller_Callback cb) {
+	controller_callback = cb;
 	Controller_Loop_Timer_Init();
 	Controller_Loop_Start_Timer();
 }
@@ -36,5 +39,5 @@ void Controller_Loop_Init() {
 void TIMER1_IRQHandler() {
 	//Write HIGH bit value to IR Register for Corresponding Interrupt
 	TIMER1->IR = 1;
-	Controller_Update();
+	controller_callback();
 }
