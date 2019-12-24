@@ -29,6 +29,7 @@ static const int UART_RECV_BUFFER_LENGTH = 32;
 
 static volatile char UARTBuffers[4][UART_RECV_BUFFER_LENGTH]; // These are volatile, because they can be changed by an interrupt
 static volatile int	 UARTBufferIndexes[4];
+static volatile UARTRecvCallback UARTRecvCallbacks[4];
 
 static void uart_set_baud_rate(volatile LPC_UART_TypeDef* uart, uint32_t baud_rate) {
 	uint8_t i = 0;
@@ -81,21 +82,29 @@ void uart_init(uint8_t uart_id, uint32_t baud_rate) {
 };
 
 void uart_write(uint8_t uart_id, const char *s) {
-	for (; *s; s++) {
+	uart_write_n(uart_id, s, strlen(s));
+}
+
+void uart_write_n(uint8_t uart_id, const char *s, int len) {
+	int i;
+	for (i=0; i<len; i++) {
 		// wait until THRE is set
 		while (!(UART[uart_id]->LSR & (1 << 5)))
 			;
-		UART[uart_id]->THR = *s;
+		UART[uart_id]->THR = s[i];
 	}
 }
 
 static void UART_IRQHandler(int uart_id) {
-	uint32_t currentInterrupt = UART[uart_id]->IIR;
+	const uint32_t currentInterrupt = UART[uart_id]->IIR;
+	const uint32_t origLen = UARTBufferIndexes[uart_id];
 	if (currentInterrupt & (1<<2)) { // RDA
 		while ((UART[uart_id]->LSR & 1) && // Receiver data ready
 						UARTBufferIndexes[uart_id] < UART_RECV_BUFFER_LENGTH-1) { // There is space in the buffer
 			UARTBuffers[uart_id][UARTBufferIndexes[uart_id]++] = UART[uart_id]->RBR;
 		}
+		if (UARTRecvCallbacks[uart_id] != NULL)
+			UARTRecvCallbacks[uart_id](UARTBuffers[uart_id], origLen, UARTBufferIndexes[uart_id]); // Call the attached callback
 	}
 }
 
@@ -149,4 +158,21 @@ uint32_t uart_readline(uint8_t uart_id, const char* eol, char *s) {
 
 		s[s_index] = '\0';
 		return s_index;
+}
+
+void uart_attach_recv_callback(uint8_t uart_id, UARTRecvCallback cb) {
+	UARTRecvCallbacks[uart_id] = cb;
+}
+
+void uart_clear_buffer(uint8_t uart_id) {
+	uint32_t irq_enabled_state;
+	
+	// Disable interrupts to avoid race conditions
+	irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
+	NVIC_DisableIRQ(UART_IRQn[uart_id]);
+	
+	UARTBufferIndexes[uart_id] = 0;
+	
+	if (irq_enabled_state)
+		NVIC_EnableIRQ(UART_IRQn[uart_id]);
 }
