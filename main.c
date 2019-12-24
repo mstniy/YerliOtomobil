@@ -9,6 +9,7 @@
 #include "Library/Timer.h"
 #include "Library/Ultrasonic.h"
 #include "Library/UART.h"
+#include "Library/HM10.h"
 
 void init_hm10();
 void serial_recv_callback(volatile char* buffer, int old_size, int new_size);
@@ -23,19 +24,13 @@ void init() {
 	Offboard_LEDs_Init();
 	Onboard_LEDs_Init();
 	uart_init(0, 115200);
-	uart_init(3, 9600);
 	uart_attach_recv_callback(0, serial_recv_callback);
 	uart_attach_recv_callback(3, hm10_recv_callback);
 	uart_write(0, "Hello!\r\n");
-	init_hm10();
+	hm10_init("YerliOtomobil");
 	
 	Offboard_LEDs_Set_State(0, 0, 0, 0);
 	Onboard_LEDs_Set_State(0, 0, 0, 0);
-}
-
-void init_hm10() {
-	uart_write(3, "AT+NAMEYerliOtomobil\r\n");
-	uart_write(3, "AT+RESET\r\n");
 }
 
 void update_adc_test() {
