@@ -65,8 +65,8 @@ void uart_init(uint8_t uart_id, uint32_t baud_rate) {
 	// Power on UART
 	PCONP |= (1 << PCONP_bit[uart_id]);
 
-	// Enable FIFO
-	UART[uart_id]->FCR = (1 << 0);
+	// Enable FIFO with a triger level of 2 (8 chars or timeout before interrupt)
+	UART[uart_id]->FCR = (1 << 0) | (2<<6);
 
 	uart_set_baud_rate(UART[uart_id], baud_rate);
 
@@ -112,7 +112,7 @@ void UART3_IRQHandler() {
 }
 
 uint32_t uart_readline(uint8_t uart_id, const char* eol, char *s) {
-		uint32_t s_index = 0, i, eol_len, irq_enabled_state;
+		uint32_t s_index = 0, i, j, eol_len, irq_enabled_state, got_eol=0;
 
 		eol_len = strlen(eol);
 
@@ -124,16 +124,27 @@ uint32_t uart_readline(uint8_t uart_id, const char* eol, char *s) {
 			irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
 			NVIC_DisableIRQ(UART_IRQn[uart_id]);
 			
-			for (i=0; i<UARTBufferIndexes[uart_id]; i++)
+			for (i=0; i<UARTBufferIndexes[uart_id]; i++) {
 				s[s_index++] = UARTBuffers[uart_id][i];
-			UARTBufferIndexes[uart_id]=0;
+				if (s_index >= eol_len && strncmp(s+s_index-eol_len, eol, eol_len) == 0) { // s ends with eol
+					got_eol=1;
+					break;
+				}
+			}
+			if (got_eol) {
+				i++;
+				for (j=0; j<UARTBufferIndexes[uart_id]-i; j++)
+					UARTBuffers[uart_id][j] = UARTBuffers[uart_id][i+j];
+				UARTBufferIndexes[uart_id]-=i;
+			}
+			else
+				UARTBufferIndexes[uart_id]=0;
 			
 			if (irq_enabled_state)
 				NVIC_EnableIRQ(UART_IRQn[uart_id]);
 			
-			// s ends with eol
-			if (strncmp(s+s_index-eol_len, eol, eol_len) == 0)
-					break;
+			if (got_eol)
+				break;
 		}
 
 		s[s_index] = '\0';

@@ -50,9 +50,9 @@ void update_bluetooth_comm() {
 void init_hm10() {
 	uint32_t nread;
 	
-	uart_write(3, "AT\r\n");
+	/*uart_write(3, "AT\r\n");
 	uart_readline(3, "\r\n", buf); // OK
-	uart_write(0, buf);
+	uart_write(0, buf);*/
 	
 	uart_write(3, "AT+NAMEYerliOtomobil\r\n");
 	nread = uart_readline(3, "\r\n", buf); // 
