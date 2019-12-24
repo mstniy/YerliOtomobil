@@ -27,8 +27,8 @@ static const IRQn_Type UART_IRQn[] = {
 
 static const int UART_RECV_BUFFER_LENGTH = 32;
 
-static char UARTBuffers[4][UART_RECV_BUFFER_LENGTH];
-static int	UARTBufferIndexes[4];
+static volatile char UARTBuffers[4][UART_RECV_BUFFER_LENGTH]; // These are volatile, because they can be changed by an interrupt
+static volatile int	 UARTBufferIndexes[4];
 
 static void uart_set_baud_rate(volatile LPC_UART_TypeDef* uart, uint32_t baud_rate) {
 	uint8_t i = 0;
@@ -74,9 +74,10 @@ void uart_init(uint8_t uart_id, uint32_t baud_rate) {
 										| (0 << 2) // 1 stop bit
 										| (0 << 3); // no parity bit
 		
-	// disable interrupts
-	UART[uart_id]->IER = 0; 
-	NVIC_DisableIRQ(UART_IRQn[uart_id]);
+	UART[uart_id]->IER = 1;  // Enable RDA interrupts
+	NVIC_EnableIRQ(UART_IRQn[uart_id]);
+	NVIC_SetPriority(UART_IRQn[uart_id], 5);
+	//NVIC_ClearPendingIRQ(UART_IRQn[uart_id]);
 };
 
 void uart_write(uint8_t uart_id, const char *s) {
@@ -88,25 +89,53 @@ void uart_write(uint8_t uart_id, const char *s) {
 	}
 }
 
+static void UART_IRQHandler(int uart_id) {
+	uint32_t currentInterrupt = UART[uart_id]->IIR;
+	if (currentInterrupt & (1<<2)) { // RDA
+		while ((UART[uart_id]->LSR & 1) && // Receiver data ready
+						UARTBufferIndexes[uart_id] < UART_RECV_BUFFER_LENGTH-1) { // There is space in the buffer
+			UARTBuffers[uart_id][UARTBufferIndexes[uart_id]++] = UART[uart_id]->RBR;
+		}
+	}
+}
+
+void UART0_IRQHandler() {
+	UART_IRQHandler(0);
+}
+
+void UART2_IRQHandler() {
+	UART_IRQHandler(2);
+}
+
+void UART3_IRQHandler() {
+	UART_IRQHandler(3);
+}
+
 uint32_t uart_readline(uint8_t uart_id, const char* eol, char *s) {
-		uint32_t i = 0, eol_len;
+		uint32_t s_index = 0, i, eol_len, irq_enabled_state;
 
 		eol_len = strlen(eol);
 
 		while(1) {
-			// wait until RDR is set
-			while (!(UART[uart_id]->LSR & (1 << 0)))
+			while (UARTBufferIndexes[uart_id] == 0)
 					;
-
-			s[i++] = UART[uart_id]->RBR;
+			
+			// Disable interrupts to avoid race conditions
+			irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
+			NVIC_DisableIRQ(UART_IRQn[uart_id]);
+			
+			for (i=0; i<UARTBufferIndexes[uart_id]; i++)
+				s[s_index++] = UARTBuffers[uart_id][i];
+			UARTBufferIndexes[uart_id]=0;
+			
+			if (irq_enabled_state)
+				NVIC_EnableIRQ(UART_IRQn[uart_id]);
 			
 			// s ends with eol
-			if (strncmp(s+i-eol_len, eol, eol_len) == 0)
+			if (strncmp(s+s_index-eol_len, eol, eol_len) == 0)
 					break;
 		}
 
-		s[i] = '\0';
-		return i;
+		s[s_index] = '\0';
+		return s_index;
 }
-
-
