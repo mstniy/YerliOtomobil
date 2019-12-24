@@ -1,8 +1,8 @@
 #include "Ultrasonic.h"
 
-uint32_t ultrasonicSensorRisingCaptureTime;
-uint32_t ultrasonicSensorFallingCaptureTime;
-uint8_t ultrasonicSensorNewDataAvailable = 0;
+static uint32_t ultrasonicSensorRisingCaptureTime;
+volatile uint8_t ultrasonicSensorNewDataAvailable = 0;
+volatile int ultrasonicSensorLastMeasurementCM;
 
 static void Ultrasonic_Trigger_Timer_Init() {
 	uint32_t temp;
@@ -100,7 +100,8 @@ void TIMER3_IRQHandler() {
 		ultrasonicSensorCaptureRisingEdge = 0;
 	}
 	else {
-		ultrasonicSensorFallingCaptureTime = TIMER3->CR1;
+		const uint32_t ultrasonicSensorFallingCaptureTime = TIMER3->CR1;
+		ultrasonicSensorLastMeasurementCM = (ultrasonicSensorFallingCaptureTime-ultrasonicSensorRisingCaptureTime)/58.0;
 		ultrasonicSensorNewDataAvailable = 1;
 		
 		LPC_TIM3->CCR = (1 << 3) | (1 << 5);

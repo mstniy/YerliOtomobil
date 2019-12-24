@@ -1,4 +1,6 @@
 #include "LPC407x_8x_177x_8x.h"
+#include <string.h>
+#include <stdio.h>
 
 #include "Library/Offboard_LED.h"
 #include "Library/Onboard_LED.h"
@@ -45,14 +47,67 @@ void serial_recv_callback(volatile char* buffer, int old_size, int new_size) {
 
 void hm10_recv_callback(volatile char* buffer, int old_size, int new_size) {
 	uart_write_n(0, (const char *)(buffer+old_size), new_size-old_size);
-	uart_clear_buffer(3); // We don't explicitly read from hm10, so to keep the bufer from filling up, we clean it here.
-												// Note that once we implement the logic that reads commands from HM10, we will need to remove this line.
+}
+
+void create_status_information(char* buf) {
+	sprintf(buf, "{\"distance\":%d,\"light_level_left\":%d,\"light_level_right\":%d,\"op_mode\":\"%s\"}\r\n",
+		ultrasonicSensorLastMeasurementCM,
+		ADC_GetLastValueOfLeftLDR(),
+		ADC_GetLastValueOfRightLDR(),
+		controller_in_test?"TEST":"AUTO"
+	);
+}
+
+void update() {
+	static char line[128];
+	static char status_buf[256];
+	
+	uart_readline(3, "\r\n", line);
+	if (strcmp(line, "STATUS\r\n")==0) {
+		create_status_information(status_buf);
+		uart_write(3, status_buf);
+		return;
+	}
+	if (controller_in_test) {
+		if (strcmp(line, "LEFT\r\n")==0)
+			controller_test_state = LeftNew;
+		else if (strcmp(line, "RIGHT\r\n")==0)
+			controller_test_state = RightNew;
+		else if (strcmp(line, "FORWARD\r\n")==0)
+			controller_test_state = Forward;
+		else if (strcmp(line, "BACK\r\n")==0)
+			controller_test_state = Back;
+		else if (strcmp(line, "STOP\r\n")==0)
+			controller_test_state = Stop;
+		else if (strcmp(line, "AUTO\r\n")==0) {
+			controller_auto_state = Wait;
+			controller_in_test=0;
+		}
+		uart_write(3, line);
+		if (strcmp(line, "AUTO\r\n")==0)
+			uart_write(3, "AUTONOMOUS\r\n");
+	}
+	else { // Auto mode
+		if (strcmp(line, "TEST\r\n")==0) {
+			controller_test_state = Stop;
+			controller_in_test=1;
+			return;
+		}
+		if (controller_auto_state == Wait) {
+			if (strcmp(line, "START\r\n")==0)
+				controller_auto_state = Started;
+		}
+		if (controller_auto_state == StoppedNew) {
+			uart_write(3, "FINISH\r\n");
+			controller_auto_state = StoppedStale;
+		}
+	}
 }
  
 int main() {
 	init();
 
 	while (1) {
-		update_bluetooth_test();
+		update();
 	}
 }

@@ -49,7 +49,7 @@ void update_ultrasonic_test() {
 	if (ultrasonicSensorNewDataAvailable == 0)
 		return ;
 	ultrasonicSensorNewDataAvailable = 0;
-	dist_cm = (ultrasonicSensorFallingCaptureTime-ultrasonicSensorRisingCaptureTime)/58.0;
+	dist_cm = ultrasonicSensorLastMeasurementCM;
 	if (dist_cm < 5)
 		Onboard_LEDs_Set_State(1,1,1,1);
 	else if (dist_cm < 10)

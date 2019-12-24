@@ -1,7 +1,5 @@
 #include "ControllerLoop.h"
 
-#define CONTROLLER_LOOP_PERIOD_MS 50
-
 static Controller_Callback controller_callback;
 
 static void Controller_Loop_Timer_Init() {
@@ -13,15 +11,15 @@ static void Controller_Loop_Timer_Init() {
 	
 	TIMER1->TCR |= (1 << 1);
 	
-	//Change PR Register value for 1 microsecond incrementing
-	TIMER1->PR = PERIPHERAL_CLOCK_FREQUENCY/1000000-1;
+	//Change PR Register value for 1 millisecond incrementing
+	TIMER1->PR = PERIPHERAL_CLOCK_FREQUENCY/1000-1;
 	NVIC_EnableIRQ(TIMER1_IRQn);
 	NVIC_SetPriority(TIMER1_IRQn,5);
 	NVIC_ClearPendingIRQ(TIMER1_IRQn);
 }
 
 static void Controller_Loop_Start_Timer() {
-	TIMER1->MR0 = CONTROLLER_LOOP_PERIOD_MS*1000 + TIMER1->TC;
+	TIMER1->MR0 = CONTROLLER_LOOP_PERIOD_MS + TIMER1->TC;
 	//Raise an interrupt when MR0 matches TC and reset TC.
 	TIMER1->MCR = 3;
 	//Remove the reset on counters.

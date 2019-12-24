@@ -8,9 +8,8 @@
 #define IOCON_TRIGGER	*((volatile uint32_t*)0x4002C024)
 #define IOCON_ECHO	*((volatile uint32_t*)0x4002C060)
 
-extern uint32_t ultrasonicSensorRisingCaptureTime;
-extern uint32_t ultrasonicSensorFallingCaptureTime;
-extern uint8_t ultrasonicSensorNewDataAvailable;
+extern volatile uint8_t ultrasonicSensorNewDataAvailable;
+extern volatile int ultrasonicSensorLastMeasurementCM;
 
 void Ultrasonic_Init(void);
 
