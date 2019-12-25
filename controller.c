@@ -31,17 +31,17 @@ void motors_stop() {
 }
 
 void motors_left() {
-	Motors_Set_Scaled_Speed(0, 0.8);
-	Motors_Set_Scaled_Speed(1, 0.9);
-	Motors_Set_Scaled_Speed(2, 0);
-	Motors_Set_Scaled_Speed(3, 0.6);
+	Motors_Set_Scaled_Speed(0, -1);
+	Motors_Set_Scaled_Speed(1, 1);
+	Motors_Set_Scaled_Speed(2, -1);
+	Motors_Set_Scaled_Speed(3, 1);
 }
 
 void motors_right() {
-	Motors_Set_Scaled_Speed(0, 0.9);
-	Motors_Set_Scaled_Speed(1, 0.8);
-	Motors_Set_Scaled_Speed(2, 0.6);
-	Motors_Set_Scaled_Speed(3, 0);
+	Motors_Set_Scaled_Speed(0, 1);
+	Motors_Set_Scaled_Speed(1, -1);
+	Motors_Set_Scaled_Speed(2, 1);
+	Motors_Set_Scaled_Speed(3, -1);
 }
 
 void motors_forward() {
