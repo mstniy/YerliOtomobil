@@ -1,5 +1,6 @@
 #include <math.h>
 #include "Motors.h"
+#include "ADC.h"
 
 void Motors_Init(void) {
 	const uint32_t port1mask = (1<<20)|(1<<23)|(1<<24);
@@ -18,6 +19,7 @@ void Motors_Init(void) {
 }
 
 void Motors_Set_Scaled_Speed(int motor_index, double speed) {
+	const double potentiometerLimit = ADC_GetLastValueOfPotentiometer()/4095.0; // Potentiometer acts as a speed multiplicator
 	uint32_t temp;
 	int in1, in2;
 	if (speed == 0)
@@ -48,6 +50,9 @@ void Motors_Set_Scaled_Speed(int motor_index, double speed) {
 		temp |= (in1<<21)|(in2<<4);
 		GPIO_PORT0->PIN = temp;
 	}
-	
-	PWM_Write(motor_index, fabs(speed)*0.9); // The maximum recommended duty cycle for the motors is 90%
+	speed = fabs(speed);
+	//speed *= 0.9; // The maximum recommended duty cycle for the motors is 90%, but we use a 5V source, not 12.
+	if (speed > potentiometerLimit)
+		speed = potentiometerLimit;
+	PWM_Write(motor_index, speed);
 }
