@@ -14,11 +14,10 @@
 #include "testers.h"
 #include "controller.h"
 
-void init_hm10(void);
-void serial_recv_callback(volatile char* buffer, int old_size, int new_size);
-void hm10_recv_callback(volatile char* buffer, int old_size, int new_size);
+static void serial_recv_callback(volatile char* buffer, int old_size, int new_size);
+static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size);
 
-void init() {
+static void init() {
 	Motors_Init();
 	Controller_Loop_Init(Controller_Update);
 	ADC_Init();
@@ -36,7 +35,7 @@ void init() {
 	Onboard_LEDs_Set_State(0, 0, 0, 0);
 }
 
-void serial_recv_callback(volatile char* buffer, int old_size, int new_size) {
+static void serial_recv_callback(volatile char* buffer, int old_size, int new_size) {
 	volatile char* cur;
 	for (cur = buffer+old_size; cur<buffer+new_size; cur++) {
 		uart_write_n(0, (const char*)cur, 1);
@@ -45,20 +44,29 @@ void serial_recv_callback(volatile char* buffer, int old_size, int new_size) {
 	}
 }
 
-void hm10_recv_callback(volatile char* buffer, int old_size, int new_size) {
+static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size) {
 	uart_write_n(0, (const char *)(buffer+old_size), new_size-old_size);
 }
 
-void create_status_information(char* buf) {
+static int toLightLevel(int meas) {
+	double res = -0.35275*meas+1340.45;
+	if (res < 0)
+		res = 0;
+	if (res > 1023)
+		res = 1023;
+	return res;
+}
+
+static void create_status_information(char* buf) {
 	sprintf(buf, "{\"distance\":%d,\"light_level_left\":%d,\"light_level_right\":%d,\"op_mode\":\"%s\"}\r\n",
 		ultrasonicSensorLastMeasurementCM,
-		ADC_GetLastValueOfLeftLDR(),
-		ADC_GetLastValueOfRightLDR(),
+		toLightLevel(ADC_GetLastValueOfLeftLDR()),
+		toLightLevel(ADC_GetLastValueOfRightLDR()),
 		controller_in_test?"TEST":"AUTO"
 	);
 }
 
-void update() {
+static void update() {
 	static char line[128];
 	static char status_buf[256];
 	
