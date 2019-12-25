@@ -61,8 +61,8 @@ void motors_backward() {
 }
 
 int check_bright_light() {
-	return 0;
-	//return ADC_GetLastValueOfLeftLDR() >= 300 || ADC_GetLastValueOfRightLDR() >= 300;
+	//return 0;
+	return ADC_GetLastValueOfLeftLDR() >= 500 || ADC_GetLastValueOfRightLDR() >= 500;
 }
 
 void Controller_Test_Update() {

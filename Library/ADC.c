@@ -11,6 +11,15 @@ uint8_t ADC_New_Data_Available[3] = {0};
 static int channel_map[3] = {ADC_LEFT_CHANNEL, ADC_RIGHT_CHANNEL, ADC_POTENTIOMETER_CHANNEL};
 static int current_channel = LEFT_LDR;
 
+static int toLightLevel(int meas) {
+	double res = -0.35275*meas+1340.45;
+	if (res < 0)
+		res = 0;
+	if (res > 1023)
+		res = 1023;
+	return res;
+}
+
 static void ADC_Timer0_Init() {
 	T0_M1_PIN_IOCON &= ~(0x07);
 	T0_M1_PIN_IOCON |= 0x03;
@@ -105,12 +114,12 @@ void ADC_IRQHandler() {
 	ADC->GDR &= ~((uint32_t)1 << 31);
 	switch (current_channel) {
 	    case LEFT_LDR:
-	    	ADC_Last[LEFT_LDR] = (ADC->DR[ADC_LEFT_CHANNEL]>>4)&0xfff;
+	    	ADC_Last[LEFT_LDR] = toLightLevel((ADC->DR[ADC_LEFT_CHANNEL]>>4)&0xfff);
 	    	ADC_New_Data_Available[LEFT_LDR] = 1;
 	    	current_channel = RIGHT_LDR;
 	      	break;
 	    case RIGHT_LDR:
-	     	ADC_Last[RIGHT_LDR] = (ADC->DR[ADC_RIGHT_CHANNEL]>>4)&0xfff;
+	     	ADC_Last[RIGHT_LDR] = toLightLevel((ADC->DR[ADC_RIGHT_CHANNEL]>>4)&0xfff);
 	    	ADC_New_Data_Available[RIGHT_LDR] = 1;
 	    	current_channel = POTENTIOMETER;
 	      	break;

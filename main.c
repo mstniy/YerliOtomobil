@@ -48,20 +48,11 @@ static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size
 	uart_write_n(0, (const char *)(buffer+old_size), new_size-old_size);
 }
 
-static int toLightLevel(int meas) {
-	double res = -0.35275*meas+1340.45;
-	if (res < 0)
-		res = 0;
-	if (res > 1023)
-		res = 1023;
-	return res;
-}
-
 static void create_status_information(char* buf) {
 	sprintf(buf, "{\"distance\":%d,\"light_level_left\":%d,\"light_level_right\":%d,\"op_mode\":\"%s\"}\r\n",
 		ultrasonicSensorLastMeasurementCM,
-		toLightLevel(ADC_GetLastValueOfLeftLDR()),
-		toLightLevel(ADC_GetLastValueOfRightLDR()),
+		ADC_GetLastValueOfLeftLDR(),
+		ADC_GetLastValueOfRightLDR(),
 		controller_in_test?"TEST":"AUTO"
 	);
 }
