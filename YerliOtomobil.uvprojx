@@ -475,7 +475,7 @@
             <File>
               <FileName>SpinCounter.c</FileName>
               <FileType>1</FileType>
-              <FilePath>X:\Library\SpinCounter.c</FilePath>
+              <FilePath>.\Library\SpinCounter.c</FilePath>
             </File>
           </Files>
         </Group>
