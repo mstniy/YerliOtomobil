@@ -11,6 +11,7 @@
 #include "Library/UART.h"
 #include "Library/HM10.h"
 #include "Library/ControllerLoop.h"
+#include "Library/SpinCounter.h"
 #include "testers.h"
 #include "controller.h"
 
@@ -33,6 +34,8 @@ static void init() {
 	
 	Offboard_LEDs_Set_State(0, 0, 0, 0);
 	Onboard_LEDs_Set_State(0, 0, 0, 0);
+	
+	spin_counter_init();
 }
 
 static void serial_recv_callback(volatile char* buffer, int old_size, int new_size) {
@@ -102,11 +105,20 @@ static void update() {
 		}
 	}
 }
- 
+
+int update2() {
+	volatile uint32_t i;
+	
+	i = (LPC_GPIO0->PIN & (1 << 7));
+	
+	return i;
+}
+
 int main() {
 	init();
 
 	while (1) {
+		//update();
 		update();
 	}
 }

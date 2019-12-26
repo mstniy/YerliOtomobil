@@ -472,6 +472,11 @@
               <FileType>1</FileType>
               <FilePath>.\Library\ControllerLoop.c</FilePath>
             </File>
+            <File>
+              <FileName>SpinCounter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>X:\Library\SpinCounter.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
