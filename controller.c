@@ -11,15 +11,16 @@
 #include "Library/UART.h"
 #include "Library/HM10.h"
 #include "Library/ControllerLoop.h"
+#include "Library/SpinCounter.h"
 
 volatile Controller_Test_State controller_test_state = Stop;
 volatile Controller_Auto_State controller_auto_state;
 volatile int controller_in_test = 1; // Start in test mode
 
-static const uint32_t TEST_LEFT_DURATION_MS = 1000;
-static const uint32_t TEST_RIGHT_DURATION_MS = TEST_LEFT_DURATION_MS;
+static const uint32_t TEST_LEFT_RIGHT_SPIN_COUNT = 6;
 static const uint32_t TEST_LEFT_RIGHT_LED_BLINK_MS = 500;
-static uint32_t test_left_start_time, test_right_start_time;
+static uint32_t test_left_right_start_spin_count;
+static uint32_t test_left_right_start_controller_loop_counter;
 
 static uint32_t controller_loop_counter=0;
 
@@ -71,18 +72,19 @@ void Controller_Test_Update() {
 		return;
 	}
 	if (controller_test_state == LeftNew) {
-		test_left_start_time = controller_loop_counter;
+		test_left_right_start_spin_count = spin_counter_get_count();
+		test_left_right_start_controller_loop_counter = controller_loop_counter;
 		motors_left();
 		Offboard_LEDs_Set_State(1,0,0,0);
 		controller_test_state = LeftOngoing;
 	}
 	else if (controller_test_state == LeftOngoing) {
-		if (controller_loop_counter - test_left_start_time >= TEST_LEFT_DURATION_MS/CONTROLLER_LOOP_PERIOD_MS) { // TODO: Time keeps passing even when we are paused
+		if (spin_counter_get_count() - test_left_right_start_spin_count >= TEST_LEFT_RIGHT_SPIN_COUNT) {
 			motors_stop();
 			controller_test_state = Stop;
 		}
 		else {
-			if ((controller_loop_counter - test_left_start_time) * CONTROLLER_LOOP_PERIOD_MS % TEST_LEFT_RIGHT_LED_BLINK_MS < TEST_LEFT_RIGHT_LED_BLINK_MS/2)
+			if ((controller_loop_counter - test_left_right_start_controller_loop_counter) * CONTROLLER_LOOP_PERIOD_MS % TEST_LEFT_RIGHT_LED_BLINK_MS < TEST_LEFT_RIGHT_LED_BLINK_MS/2)
 				Offboard_LEDs_Set_State(1,0,0,0);
 			else
 				Offboard_LEDs_Set_State(0,0,0,0);
@@ -90,18 +92,19 @@ void Controller_Test_Update() {
 		}
 	}
 	else if (controller_test_state == RightNew) {
-		test_right_start_time = controller_loop_counter;
+		test_left_right_start_spin_count = spin_counter_get_count();
+		test_left_right_start_controller_loop_counter = controller_loop_counter;
 		motors_right();
 		Offboard_LEDs_Set_State(0,1,0,0);
 		controller_test_state = RightOngoing;
 	}
 	else if (controller_test_state == RightOngoing) {
-		if (controller_loop_counter - test_right_start_time >= TEST_RIGHT_DURATION_MS/CONTROLLER_LOOP_PERIOD_MS) { // TODO: Time keeps passing even when we are paused
+		if (spin_counter_get_count() - test_left_right_start_spin_count >= TEST_LEFT_RIGHT_SPIN_COUNT) {
 			motors_stop();
 			controller_test_state = Stop;
 		}
 		else {
-			if ((controller_loop_counter - test_right_start_time) * CONTROLLER_LOOP_PERIOD_MS % TEST_LEFT_RIGHT_LED_BLINK_MS < TEST_LEFT_RIGHT_LED_BLINK_MS/2)
+			if ((controller_loop_counter - test_left_right_start_controller_loop_counter) * CONTROLLER_LOOP_PERIOD_MS % TEST_LEFT_RIGHT_LED_BLINK_MS < TEST_LEFT_RIGHT_LED_BLINK_MS/2)
 				Offboard_LEDs_Set_State(0,1,0,0);
 			else
 				Offboard_LEDs_Set_State(0,0,0,0);
