@@ -5,10 +5,10 @@
 static uint32_t count = 0;
 
 void spin_counter_init() {
-	LPC_IOCON->P0_0 &= ~7;
+	LPC_IOCON->P0_8 &= ~7;
 	
-	LPC_GPIO0->DIR &= ~(1 << 7);
-	LPC_GPIOINT->IO0IntEnR = (1 << 7);
+	LPC_GPIO0->DIR &= ~(1 << 8);
+	LPC_GPIOINT->IO0IntEnR = (1 << 8);
 	LPC_GPIOINT->IO0IntEnF = 0;
 	
 	NVIC_EnableIRQ(GPIO_IRQn);
@@ -16,6 +16,10 @@ void spin_counter_init() {
 }
 
 void GPIO_IRQHandler() {
-	LPC_GPIOINT->IO0IntClr = (1 << 7);
+	LPC_GPIOINT->IO0IntClr = (1 << 8);
 	count++;
+}
+
+int spin_counter_get_count(){
+	return count;
 }

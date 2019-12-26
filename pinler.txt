@@ -55,3 +55,5 @@ serial com. uart tx      : p0_2     : u0_txd
   iocon:0x4002 C008
 serial com. uart rx      : p0_3     : u0_rxd
   iocon:0x4002 C00C
+
+spinCounter : p12=p0_7
