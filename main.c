@@ -44,6 +44,7 @@ static void serial_recv_callback(volatile char* buffer, int old_size, int new_si
 		if (*cur == '\r')
 			uart_write(0, "\n");
 	}
+	uart_clear_buffer(0); // We never explicitly read from uart0 (uart_readline). To keep the buffer from filling up, we explicitly clean it here.
 }
 
 static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size) {
