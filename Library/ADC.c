@@ -6,7 +6,7 @@ uint8_t ADC_New_Data_Available[3] = {0};
 
 #define ADC_LEFT_CHANNEL 2
 #define ADC_RIGHT_CHANNEL 3
-#define ADC_POTENTIOMETER_CHANNEL 0
+#define ADC_POTENTIOMETER_CHANNEL 4
 
 static int channel_map[3] = {ADC_LEFT_CHANNEL, ADC_RIGHT_CHANNEL, ADC_POTENTIOMETER_CHANNEL};
 static int current_channel = LEFT_LDR;
@@ -50,7 +50,7 @@ void ADC_Init() {
 	LDR_RIGHT_PIN_IOCON |= 1;
 
 	POTENTIOMETER_PIN_IOCON &= ~7;
-	POTENTIOMETER_PIN_IOCON |= 1;
+	POTENTIOMETER_PIN_IOCON |= 3;
 
 	//Change the mode value of pin to mode which should be selected if Analog mode is used.
 	LDR_LEFT_PIN_IOCON &= ~(3<<3);
