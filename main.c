@@ -52,8 +52,9 @@ static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size
 }
 
 static void create_status_information(char* buf) {
-	sprintf(buf, "{\"count\":%d, \"distance\":%d,\"light_level_left\":%d,\"light_level_right\":%d,\"op_mode\":\"%s\"}\r\n",
+	sprintf(buf, "{\"spin_count\":%d, \"potentiometer\":%0.2f, \"distance\":%d,\"light_level_left\":%d,\"light_level_right\":%d,\"op_mode\":\"%s\"}\r\n",
 		spin_counter_get_count(),
+		ADC_GetLastValueOfPotentiometer()/4095.0,
 		ultrasonicSensorLastMeasurementCM,
 		ADC_GetLastValueOfLeftLDR(),
 		ADC_GetLastValueOfRightLDR(),
