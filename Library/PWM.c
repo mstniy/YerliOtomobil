@@ -9,16 +9,13 @@ static void ioconSwitchToPWM(volatile uint32_t* iocon) {
 }
 
 void PWM_Init() {
-	int i;
 	
 	ioconSwitchToPWM(IOCON_MOTOR_0_PWM);
 	ioconSwitchToPWM(IOCON_MOTOR_1_PWM);
-	ioconSwitchToPWM(IOCON_MOTOR_2_PWM);
-	ioconSwitchToPWM(IOCON_MOTOR_3_PWM);
 	
 	PCONP |= (1 << 5/* | 1 << 6*/); // Turn PWM0 on
 	
-	PWM0->PCR |= (1<<9)|(1<<10)|(1<<11)|(1<<12); // Enable PWM output on PWM[1..4]
+	PWM0->PCR |= (1<<10)|(1<<11); // Enable PWM output on PWM[2,3]
 	
 	PWM0->TCR = 1 << 1; // Reset the timer counter and the prescale counter on the next clock cycle
 	
@@ -39,8 +36,8 @@ void PWM_Init() {
 	//Enable PWM0_IRQn (Interrupt Request)
 	*/
 	
-	for (i=0; i<4; i++)
-		PWM_Write(0, 0);
+	PWM_Write(0, 0);
+	PWM_Write(1, 0);
 }
 
 void PWM_Write(int motor_index, double T_ON) {	
@@ -56,7 +53,5 @@ void PWM_Write(int motor_index, double T_ON) {
 	}
 	if (motor_index == 0) PWM0->MR1 = new_mr;
 	if (motor_index == 1) PWM0->MR2 = new_mr;
-	if (motor_index == 2) PWM0->MR3 = new_mr;
-	if (motor_index == 3) PWM0->MR4 = new_mr;
 	PWM0->LER |= 1 << (motor_index+1);
 }

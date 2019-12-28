@@ -25,44 +25,34 @@ static uint32_t test_left_right_start_controller_loop_counter;
 static uint32_t controller_loop_counter=0;
 
 void motors_stop() {
-	int i;
-	for (i=0; i<4; i++)
-		Motors_Set_Scaled_Speed(i, 0);
+	Motors_Set_Scaled_Speed(0, 0);
+	Motors_Set_Scaled_Speed(1, 0);
 	Offboard_LEDs_Set_State(0,0,0,0);
 }
 
 void motors_left() {
 	Motors_Set_Scaled_Speed(0, -1);
 	Motors_Set_Scaled_Speed(1, 1);
-	Motors_Set_Scaled_Speed(2, -1);
-	Motors_Set_Scaled_Speed(3, 1);
 }
 
 void motors_right() {
 	Motors_Set_Scaled_Speed(0, 1);
 	Motors_Set_Scaled_Speed(1, -1);
-	Motors_Set_Scaled_Speed(2, 1);
-	Motors_Set_Scaled_Speed(3, -1);
 }
 
 void motors_forward() {
 	Motors_Set_Scaled_Speed(0, 1);
 	Motors_Set_Scaled_Speed(1, 1);
-	Motors_Set_Scaled_Speed(2, 1);
-	Motors_Set_Scaled_Speed(3, 1);
 	Offboard_LEDs_Set_State(1,1,0,0);
 }
 
 void motors_backward() {
 	Motors_Set_Scaled_Speed(0, -1);
 	Motors_Set_Scaled_Speed(1, -1);
-	Motors_Set_Scaled_Speed(2, -1);
-	Motors_Set_Scaled_Speed(3, -1);
 	Offboard_LEDs_Set_State(0,0,1,1);
 }
 
 int check_bright_light() {
-	//return 0;
 	return ADC_GetLastValueOfLeftLDR() >= 900 || ADC_GetLastValueOfRightLDR() >= 900;
 }
 
@@ -132,7 +122,7 @@ void Controller_Auto_Update() {
 		else {
 			Motors_Set_Scaled_Speed(0, 0.9); // TODO: Actually follow the wall.
 			Motors_Set_Scaled_Speed(1, 0.9); // Probably use a PID-controller
-			Motors_Set_Scaled_Speed(2, 0.9); // Factor in the value of potentiometer
+			Motors_Set_Scaled_Speed(2, 0.9);
 			Motors_Set_Scaled_Speed(3, 0.9);
 		}
 	}

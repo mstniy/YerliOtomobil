@@ -1,28 +1,18 @@
 table 84. type d i/o control registers: func values and pin functions
 quickstart board rev A sayfa 9 : pXX=pX_XX bağlantıları
 
-sol ön   motor enable : p30=p1_2  : pwm0[1]
-  iocon:0x4002 C088
-sağ ön   motor enable : p29=p1_3  : pwm0[2]
-  iocon:0x4002 C08C
-sol arka motor enable : p28=p1_5  : pwm0[3]
+sol motorlar enable : p28=p1_5  : pwm0[3]
   iocon:0x4002 C094
-sağ arka motor enable : p27=p1_6  : pwm0[4]
-  iocon:0x4002 C098
+sağ motorlar enable : p29=p1_3  : pwm0[2]
+  iocon:0x4002 C08C
 
-sol ön   motor in1 : p5=p1_24
-  iocon:0x4002 C0E0
-sağ ön   motor in1 : p6=p1_23
-  iocon:0x4002 C0DC
-sol arka motor in1 : p7=p1_20
+sol motorlar in1 : p7=p1_20
   iocon:0x4002 C0D0
-sağ arka motor in1 : p8=p0_21
-  iocon:0x4002 C054
+sağ motorlar in1 : p6=p1_23
+  iocon:0x4002 C0DC
 
-sol ön   motor in2 : p31=p5_3
-sağ ön   motor in2 : p32=p5_2
-sol arka motor in2 : p33=p0_5
-sağ arka motor in2 : p34=p0_4
+sol motorlar in2 : p33=p0_5
+sağ motorlar in2 : p32=p5_2
 
 ön sol  led : p23=p2_10
   iocon:0x4002 C128
