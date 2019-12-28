@@ -24,13 +24,13 @@ sağ ön   motor in2 : p32=p5_2
 sol arka motor in2 : p33=p0_5
 sağ arka motor in2 : p34=p0_4
 
-sol  led : p23=p2_10
+ön sol  led : p23=p2_10
   iocon:0x4002 C128
-sağ  led : p24=p1_12
+ön sağ  led : p24=p1_12
   iocon:0x4002 C0B0
-ön   led : p25=p1_11
+arka sol led : p25=p1_11
   iocon:0x4002 C0AC
-arka led : p26=p1_7
+arka sağ led : p26=p1_7
   iocon:0x4002 C09C
 
 ultrason trig: p11=p0_9  : t2_mat3
