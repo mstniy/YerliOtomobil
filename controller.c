@@ -53,7 +53,7 @@ void motors_backward() {
 }
 
 int check_bright_light() {
-	return ADC_GetLastValueOfLeftLDR() >= 900 || ADC_GetLastValueOfRightLDR() >= 900;
+	return ADC_GetLastValueOfLeftLDR() >= 800 || ADC_GetLastValueOfRightLDR() >= 800;
 }
 
 void Controller_Test_Update() {
@@ -110,7 +110,7 @@ void Controller_Test_Update() {
 }
 
 void Controller_Auto_Update() {
-	if (controller_auto_state == Wait || controller_auto_state == StoppedNew || controller_auto_state == StoppedStale) {
+	if (controller_auto_state == Wait || controller_auto_state == StoppedNew) {
 		motors_stop();
 		return;
 	}
@@ -120,8 +120,8 @@ void Controller_Auto_Update() {
 			motors_stop();
 		}
 		else {
-			Motors_Set_Scaled_Speed(0, 0.9); // TODO: Actually follow the wall.
-			Motors_Set_Scaled_Speed(1, 0.9); // Probably use a PID-controller
+			Motors_Set_Scaled_Speed(0, 1); // TODO: Actually follow the wall.
+			Motors_Set_Scaled_Speed(1, 1); // Probably use a PID-controller
 		}
 	}
 }

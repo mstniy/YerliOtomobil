@@ -32,6 +32,7 @@ static void init() {
 	uart_attach_recv_callback(3, hm10_recv_callback);
 	uart_write(0, "Hello!\r\n");
 	hm10_init("YerliOtomobil");
+	uart_write(3, "TESTING\r\n");
 	
 	Offboard_LEDs_Set_State(0, 0, 0, 0);
 	Onboard_LEDs_Set_State(0, 0, 0, 0);
@@ -66,6 +67,11 @@ static void update() {
 	static char line[128];
 	static char status_buf[256];
 	
+	if (!controller_in_test && controller_auto_state==StoppedNew) {
+		uart_write(3, "FINISH\r\n");
+		controller_auto_state = Wait;
+	}
+		
 	if(uart_readline(3, "\r\n", line) == -1) {
 		return;
 	}
@@ -91,12 +97,14 @@ static void update() {
 			controller_auto_state = Wait;
 			controller_in_test=0;
 		}
+		strcat(line, "\r\n");
 		uart_write(3, line);
-		if (strcmp(line, "AUTO")==0)
+		if (strcmp(line, "AUTO\r\n")==0)
 			uart_write(3, "AUTONOMOUS\r\n");
 	}
 	else { // Auto mode
 		if (strcmp(line, "TEST")==0) {
+			uart_write(3, "TESTING\r\n");
 			controller_test_state = Stop;
 			controller_in_test=1;
 			return;
@@ -104,10 +112,6 @@ static void update() {
 		if (controller_auto_state == Wait) {
 			if (strcmp(line, "START")==0)
 				controller_auto_state = Started;
-		}
-		if (controller_auto_state == StoppedNew) {
-			uart_write(3, "FINISH\r\n");
-			controller_auto_state = StoppedStale;
 		}
 	}
 }

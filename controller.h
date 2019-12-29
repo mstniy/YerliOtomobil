@@ -6,7 +6,7 @@ typedef enum {
 } Controller_Test_State;
 
 typedef enum {
-	Wait, Started, StoppedNew, StoppedStale
+	Wait, Started, StoppedNew
 } Controller_Auto_State;
 
 // volatile to keep the compiler from changing write/read order or optimizing-out writes etc.
