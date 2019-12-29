@@ -91,8 +91,11 @@ static void update() {
 			controller_test_state = Forward;
 		else if (strcmp(line, "BACK")==0)
 			controller_test_state = Back;
-		else if (strcmp(line, "STOP")==0)
-			controller_test_state = Stop;
+		else if (strcmp(line, "STOP")==0) {
+			if(controller_test_state != LeftOngoing &&
+				 controller_test_state != RightOngoing) // ignore STOP command while turning
+				controller_test_state = Stop;
+		}
 		else if (strcmp(line, "AUTO")==0) {
 			controller_auto_state = Wait;
 			controller_in_test=0;
