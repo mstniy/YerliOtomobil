@@ -14,7 +14,8 @@
 typedef void (*UARTRecvCallback)(volatile char* buffer, int old_len, int new_len);
 
 void uart_init(uint8_t uart_id, uint32_t baud_rate);
-uint32_t uart_readline(uint8_t uart_id, const char* eol, char* s);
+//Returns -1 if the line is not ready yet.
+int32_t uart_readline(uint8_t uart_id, const char* eol, char* s);
 void uart_write(uint8_t uart_id, const char *s);
 void uart_write_n(uint8_t uart_id, const char *s, int len);
 void uart_attach_recv_callback(uint8_t uart_id, UARTRecvCallback cb);

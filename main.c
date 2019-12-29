@@ -66,40 +66,43 @@ static void update() {
 	static char line[128];
 	static char status_buf[256];
 	
-	uart_readline(3, "\r\n", line);
-	if (strcmp(line, "STATUS\r\n")==0) {
+	if(uart_readline(3, "\r\n", line) == -1) {
+		return;
+	}
+	
+	if (strcmp(line, "STATUS")==0) {
 		uart_write(3, "STATUS\r\n");
 		create_status_information(status_buf);
 		uart_write(3, status_buf);
 		return;
 	}
 	if (controller_in_test) {
-		if (strcmp(line, "LEFT\r\n")==0)
+		if (strcmp(line, "LEFT")==0)
 			controller_test_state = LeftNew;
-		else if (strcmp(line, "RIGHT\r\n")==0)
+		else if (strcmp(line, "RIGHT")==0)
 			controller_test_state = RightNew;
-		else if (strcmp(line, "FORWARD\r\n")==0)
+		else if (strcmp(line, "FORWARD")==0)
 			controller_test_state = Forward;
-		else if (strcmp(line, "BACK\r\n")==0)
+		else if (strcmp(line, "BACK")==0)
 			controller_test_state = Back;
-		else if (strcmp(line, "STOP\r\n")==0)
+		else if (strcmp(line, "STOP")==0)
 			controller_test_state = Stop;
-		else if (strcmp(line, "AUTO\r\n")==0) {
+		else if (strcmp(line, "AUTO")==0) {
 			controller_auto_state = Wait;
 			controller_in_test=0;
 		}
 		uart_write(3, line);
-		if (strcmp(line, "AUTO\r\n")==0)
+		if (strcmp(line, "AUTO")==0)
 			uart_write(3, "AUTONOMOUS\r\n");
 	}
 	else { // Auto mode
-		if (strcmp(line, "TEST\r\n")==0) {
+		if (strcmp(line, "TEST")==0) {
 			controller_test_state = Stop;
 			controller_in_test=1;
 			return;
 		}
 		if (controller_auto_state == Wait) {
-			if (strcmp(line, "START\r\n")==0)
+			if (strcmp(line, "START")==0)
 				controller_auto_state = Started;
 		}
 		if (controller_auto_state == StoppedNew) {

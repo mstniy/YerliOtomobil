@@ -25,10 +25,10 @@ static const IRQn_Type UART_IRQn[] = {
 	UART0_IRQn, 0, UART2_IRQn, UART3_IRQn
 };
 
-static const int UART_RECV_BUFFER_LENGTH = 32;
+static const int UART_RECV_BUFFER_LENGTH = 128;
 
-static volatile char UARTBuffers[4][UART_RECV_BUFFER_LENGTH]; // These are volatile, because they can be changed by an interrupt
-static volatile int	 UARTBufferIndexes[4];
+static char UARTBuffers[4][UART_RECV_BUFFER_LENGTH];
+static int	 UARTBufferIndexes[4];
 static volatile UARTRecvCallback UARTRecvCallbacks[4];
 
 static void uart_set_baud_rate(volatile LPC_UART_TypeDef* uart, uint32_t baud_rate) {
@@ -120,44 +120,46 @@ void UART3_IRQHandler() {
 	UART_IRQHandler(3);
 }
 
-uint32_t uart_readline(uint8_t uart_id, const char* eol, char *s) {
-		uint32_t s_index = 0, i, j, eol_len, irq_enabled_state, got_eol=0;
+int32_t my_str_in_str(const char* big, const char* str, int big_len) {
+	int i, n = strlen(str);
+	for (i=0; i<=big_len-n; i++) {
+		if (strncmp(big+i, str, n) == 0) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+int32_t uart_readline(uint8_t uart_id, const char* eol, char *s) {
+		int32_t i, eol_len, irq_enabled_state, search_result;
+	
+		if(UARTBufferIndexes[uart_id] == 0)
+			return -1;
 
 		eol_len = strlen(eol);
-
-		while(1) {
-			while (UARTBufferIndexes[uart_id] == 0)
-					;
-			
-			// Disable interrupts to avoid race conditions
-			irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
-			NVIC_DisableIRQ(UART_IRQn[uart_id]);
-			
-			for (i=0; i<UARTBufferIndexes[uart_id]; i++) {
-				s[s_index++] = UARTBuffers[uart_id][i];
-				if (s_index >= eol_len && strncmp(s+s_index-eol_len, eol, eol_len) == 0) { // s ends with eol
-					got_eol=1;
-					break;
-				}
-			}
-			if (got_eol) {
-				i++;
-				for (j=0; j<UARTBufferIndexes[uart_id]-i; j++)
-					UARTBuffers[uart_id][j] = UARTBuffers[uart_id][i+j];
-				UARTBufferIndexes[uart_id]-=i;
-			}
-			else
-				UARTBufferIndexes[uart_id]=0;
-			
-			if (irq_enabled_state)
-				NVIC_EnableIRQ(UART_IRQn[uart_id]);
-			
-			if (got_eol)
-				break;
+		
+		if(UARTBufferIndexes[uart_id] < eol_len)
+			return -1;
+	
+		// Disable interrupts to avoid race conditions
+		irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
+		NVIC_DisableIRQ(UART_IRQn[uart_id]);
+		
+		search_result = my_str_in_str(UARTBuffers[uart_id], eol, UARTBufferIndexes[uart_id]);
+		
+		if (search_result != -1) {
+			for (i=0; i<search_result; i++)
+				s[i] = UARTBuffers[uart_id][i];
+			s[i] = '\0';
+			for (i=0; i<UARTBufferIndexes[uart_id]-search_result-eol_len; i++)
+				UARTBuffers[uart_id][i] = UARTBuffers[uart_id][i+search_result+eol_len];
+			UARTBufferIndexes[uart_id]-=search_result+eol_len;
 		}
-
-		s[s_index] = '\0';
-		return s_index;
+		
+		if (irq_enabled_state)
+				NVIC_EnableIRQ(UART_IRQn[uart_id]);
+		
+		return search_result;
 }
 
 void uart_attach_recv_callback(uint8_t uart_id, UARTRecvCallback cb) {
