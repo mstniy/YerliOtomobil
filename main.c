@@ -68,6 +68,7 @@ static void update() {
 	
 	uart_readline(3, "\r\n", line);
 	if (strcmp(line, "STATUS\r\n")==0) {
+		uart_write(3, "STATUS\r\n");
 		create_status_information(status_buf);
 		uart_write(3, status_buf);
 		return;
