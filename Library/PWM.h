@@ -32,8 +32,8 @@ typedef struct
   volatile	uint32_t CTCR;
 } PWM_TypeDef;
 
-#define IOCON_MOTOR_0_PWM	((volatile uint32_t*)0x4002C094)
-#define IOCON_MOTOR_1_PWM	((volatile uint32_t*)0x4002C08C)
+#define IOCON_MOTOR_0_PWM	((volatile uint32_t*)0x4002C08C)
+#define IOCON_MOTOR_1_PWM	((volatile uint32_t*)0x4002C094)
 
 #define PWM0	((PWM_TypeDef*) 0x40014000)
 #define PWM1	((PWM_TypeDef*) 0x40018000)

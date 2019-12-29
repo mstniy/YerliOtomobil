@@ -23,12 +23,12 @@ void Motors_Set_Scaled_Speed(int motor_index, double speed) {
 	if (speed == 0)
 		in1 = in2 = LOW; // Brake
 	else if (speed > 0) {
-		in1 = HIGH;
-		in2 = LOW;
-	}
-	else {
 		in1 = LOW;
 		in2 = HIGH;
+	}
+	else {
+		in1 = HIGH;
+		in2 = LOW;
 	}
 	if (motor_index == 0) {
 		GPIO_PIN_Write(GPIO_PORT1,1<<20,in1);

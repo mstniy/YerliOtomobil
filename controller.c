@@ -122,8 +122,6 @@ void Controller_Auto_Update() {
 		else {
 			Motors_Set_Scaled_Speed(0, 0.9); // TODO: Actually follow the wall.
 			Motors_Set_Scaled_Speed(1, 0.9); // Probably use a PID-controller
-			Motors_Set_Scaled_Speed(2, 0.9);
-			Motors_Set_Scaled_Speed(3, 0.9);
 		}
 	}
 }

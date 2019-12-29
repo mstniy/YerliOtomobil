@@ -51,7 +51,7 @@ void PWM_Write(int motor_index, double T_ON) {
 	if (new_mr == PWM0->MR0) {
 		new_mr++;
 	}
-	if (motor_index == 0) PWM0->MR1 = new_mr;
-	if (motor_index == 1) PWM0->MR2 = new_mr;
-	PWM0->LER |= 1 << (motor_index+1);
+	if (motor_index == 0) PWM0->MR2 = new_mr;
+	if (motor_index == 1) PWM0->MR3 = new_mr;
+	PWM0->LER |= 1 << (motor_index+2);
 }
