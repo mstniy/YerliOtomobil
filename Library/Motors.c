@@ -40,7 +40,6 @@ void Motors_Set_Scaled_Speed(int motor_index, double speed) {
 	}
 	speed = fabs(speed);
 	//speed *= 0.9; // The maximum recommended duty cycle for the motors is 90%, but we use a 5V source, not 12.
-	if (speed > potentiometerLimit)
-		speed = potentiometerLimit;
+	speed *= potentiometerLimit;
 	PWM_Write(motor_index, speed);
 }

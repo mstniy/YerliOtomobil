@@ -112,6 +112,9 @@ static void update() {
 			controller_in_test=1;
 			return;
 		}
+		else if (strcmp(line, "STOP")==0) {
+				controller_auto_state = Wait;
+		}
 		if (controller_auto_state == Wait) {
 			if (strcmp(line, "START")==0)
 				controller_auto_state = Started;

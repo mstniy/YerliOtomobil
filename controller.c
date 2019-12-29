@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "controller.h"
 #include "LPC407x_8x_177x_8x.h"
 
@@ -56,7 +58,7 @@ int check_bright_light() {
 	return ADC_GetLastValueOfLeftLDR() >= 800 || ADC_GetLastValueOfRightLDR() >= 800;
 }
 
-void Controller_Test_Update() {
+void Controller_Test_Update() {	
 	if (check_bright_light()) {
 		motors_stop();
 		return;
@@ -110,6 +112,8 @@ void Controller_Test_Update() {
 }
 
 void Controller_Auto_Update() {
+	int diff; 
+	
 	if (controller_auto_state == Wait || controller_auto_state == StoppedNew) {
 		motors_stop();
 		return;
@@ -120,8 +124,19 @@ void Controller_Auto_Update() {
 			motors_stop();
 		}
 		else {
-			Motors_Set_Scaled_Speed(0, 1); // TODO: Actually follow the wall.
-			Motors_Set_Scaled_Speed(1, 1); // Probably use a PID-controller
+			// TODO: Probably use a PID controller
+			diff = abs(ultrasonicSensorLastMeasurementCM - 25);
+			if (diff > 25) {
+					diff = 25;
+			}
+			if (ultrasonicSensorLastMeasurementCM > 25) {
+				Motors_Set_Scaled_Speed(0, 1 - (diff/25.0) * 0.99);
+				Motors_Set_Scaled_Speed(1, 1);
+			}
+			else {
+				Motors_Set_Scaled_Speed(0, 1);
+				Motors_Set_Scaled_Speed(1, 1 - (diff/25.0) * 0.8);
+			}
 		}
 	}
 }
