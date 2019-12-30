@@ -9,10 +9,15 @@ typedef enum {
 	Wait, Started, StoppedNew
 } Controller_Auto_State;
 
+typedef enum {
+	ModeAuto, ModeTest, ModeManual
+} Controller_Mode;
+
 // volatile to keep the compiler from changing write/read order or optimizing-out writes etc.
 extern volatile Controller_Test_State controller_test_state;
 extern volatile Controller_Auto_State controller_auto_state;
-extern volatile int controller_in_test;
+extern volatile double controller_manual_left, controller_manual_right;
+extern volatile Controller_Mode controller_mode;
 
 void Controller_Update(void);
 

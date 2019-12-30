@@ -17,7 +17,8 @@
 
 volatile Controller_Test_State controller_test_state = Stop;
 volatile Controller_Auto_State controller_auto_state;
-volatile int controller_in_test = 1; // Start in test mode
+volatile double controller_manual_left, controller_manual_right;
+volatile Controller_Mode controller_mode = ModeTest; // Start in test mode
 
 static const uint32_t TEST_LEFT_RIGHT_SPIN_COUNT = 6;
 static const uint32_t TEST_LEFT_RIGHT_LED_BLINK_MS = 500;
@@ -141,12 +142,20 @@ void Controller_Auto_Update() {
 	}
 }
 
+void Controller_Manual_Update() {
+	Motors_Set_Scaled_Speed(0, controller_manual_left);
+	Motors_Set_Scaled_Speed(1, controller_manual_right);
+}
+
 void Controller_Update() {
 	controller_loop_counter++;
-	if (controller_in_test) {
+	if (controller_mode == ModeTest) {
 		Controller_Test_Update();
 	}
-	else {
+	else if (controller_mode == ModeAuto){
 		Controller_Auto_Update();
+	}
+	else if (controller_mode == ModeManual){
+		Controller_Manual_Update();
 	}
 }
