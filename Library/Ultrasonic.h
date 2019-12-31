@@ -9,7 +9,7 @@
 #define IOCON_ECHO	*((volatile uint32_t*)0x4002C060)
 
 extern volatile uint8_t ultrasonicSensorNewDataAvailable;
-extern volatile int ultrasonicSensorLastMeasurementCM;
+extern volatile double ultrasonicSensorLastMeasurementCM;
 
 void Ultrasonic_Init(void);
 

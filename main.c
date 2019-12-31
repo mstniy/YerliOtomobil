@@ -65,7 +65,7 @@ static const char* get_current_controller_mode_name() {
 }
 
 static void create_status_information(char* buf) {
-	sprintf(buf, "{\"spin_count\":%d, \"potentiometer\":%0.2f, \"distance\":%d,\"light_level_left\":%d,\"light_level_right\":%d,\"op_mode\":\"%s\"}\r\n",
+	sprintf(buf, "{\"spin_count\":%d, \"potentiometer\":%0.2f, \"distance\":%0.1f,\"light_level_left\":%d,\"light_level_right\":%d,\"op_mode\":\"%s\"}\r\n",
 		spin_counter_get_count(),
 		ADC_GetLastValueOfPotentiometer()/4095.0,
 		ultrasonicSensorLastMeasurementCM,
