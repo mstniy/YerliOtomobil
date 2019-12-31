@@ -15,6 +15,8 @@
 #include "Library/ControllerLoop.h"
 #include "Library/SpinCounter.h"
 
+#include "math.h"
+
 volatile Controller_Test_State controller_test_state = Stop;
 volatile Controller_Auto_State controller_auto_state;
 volatile double controller_manual_left, controller_manual_right;
@@ -26,6 +28,10 @@ static uint32_t test_left_right_start_spin_count;
 static uint32_t test_left_right_start_controller_loop_counter;
 
 static uint32_t controller_loop_counter=0;
+
+volatile double Kp = 0.45, Kd = 0.5, Ki = 0.5, Kk = 60;
+double cumulativeError, lastError, lastErrorDerivative;
+const double dt = 0.05;
 
 void motors_stop() {
 	Motors_Set_Scaled_Speed(0, 0);
@@ -53,6 +59,12 @@ void motors_backward() {
 	Motors_Set_Scaled_Speed(0, -1);
 	Motors_Set_Scaled_Speed(1, -1);
 	Offboard_LEDs_Set_State(0,0,1,1);
+}
+
+void setPID(double _Kp, double _Ki, double _Kd) {
+	Kp = _Kp;
+	Ki = _Ki;
+	Kd = _Kd;
 }
 
 int check_bright_light() {
@@ -113,7 +125,6 @@ void Controller_Test_Update() {
 }
 
 void Controller_Auto_Update() {
-	int diff; 
 	
 	if (controller_auto_state == Wait || controller_auto_state == StoppedNew) {
 		motors_stop();
@@ -126,18 +137,44 @@ void Controller_Auto_Update() {
 		}
 		else {
 			// TODO: Probably use a PID controller
-			diff = abs(ultrasonicSensorLastMeasurementCM - 25);
-			if (diff > 25) {
-					diff = 25;
+			
+			double Ku = Kp / 0.6;
+			double Tu = dt;
+			double Ti = Tu / 2;
+			double Td = Tu / 8;
+			
+			double Kii = Ki*Ku/Tu;
+			double Kdd = Kd*Ku*Tu/40;
+			
+			double target = 20.;
+			
+			double err = (ultrasonicSensorLastMeasurementCM - target);
+			
+			double derivative = (err-lastError) / dt;
+			double secondOrderErrorDerivative = (derivative - lastErrorDerivative) / dt;
+			cumulativeError += err * dt;
+			
+			double pid_value = Kp*err;
+			
+			double rightMotorSpeed = 0.5+pid_value;
+			double leftMotorSpeed  = 0.5-pid_value;
+			
+			if (secondOrderErrorDerivative > Kk)
+			{
+				rightMotorSpeed = Kd;
+				leftMotorSpeed = Ki;
 			}
-			if (ultrasonicSensorLastMeasurementCM > 25) {
-				Motors_Set_Scaled_Speed(0, 1 - (diff/25.0) * 0.99);
-				Motors_Set_Scaled_Speed(1, 1);
-			}
-			else {
-				Motors_Set_Scaled_Speed(0, 1);
-				Motors_Set_Scaled_Speed(1, 1 - (diff/25.0) * 0.8);
-			}
+			
+			if (rightMotorSpeed > 1)	rightMotorSpeed = 1;
+			if (rightMotorSpeed < 0.1)	rightMotorSpeed = 0.1;
+			if (leftMotorSpeed > 1)	leftMotorSpeed = 1;
+			if (leftMotorSpeed < 0.1)	leftMotorSpeed = 0.1;
+			
+			Motors_Set_Scaled_Speed(0, leftMotorSpeed);
+			Motors_Set_Scaled_Speed(1, rightMotorSpeed);
+			
+			lastError = err;
+			lastErrorDerivative = derivative;
 		}
 	}
 }
