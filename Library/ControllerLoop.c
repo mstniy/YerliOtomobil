@@ -41,6 +41,6 @@ uint32_t get_ms() {
 void TIMER1_IRQHandler() {
 	//Write HIGH bit value to IR Register for Corresponding Interrupt
 	TIMER1->IR = 1;
-	TIMER1->MR0 += CONTROLLER_LOOP_PERIOD_MS;
+	TIMER1->MR0 = TIMER1->TC + CONTROLLER_LOOP_PERIOD_MS;
 	controller_callback();
 }
