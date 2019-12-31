@@ -29,7 +29,7 @@ static uint32_t test_left_right_start_controller_loop_counter;
 
 static uint32_t controller_loop_counter=0;
 
-volatile double Kp = 0.45, Kd = 0.5, Ki = 0.5, Kk = 60;
+volatile double Kp = 0.05, Kd = 1, Ki = 0, Kk = 60;
 double cumulativeError, lastError, lastErrorDerivative;
 const double dt = 0.05;
 
@@ -124,19 +124,55 @@ void Controller_Test_Update() {
 		motors_stop();
 }
 
+#define abs(xx) (xx < 0 ? -(xx) : (xx))
+
 void Controller_Auto_Update() {
+	
+	static int arr[10];
+	int s = 0;
 	
 	if (controller_auto_state == Wait || controller_auto_state == StoppedNew) {
 		motors_stop();
+		s = 0;
 		return;
 	}
 	if (controller_auto_state == Started) {
 		if (check_bright_light()) {
 			controller_auto_state = StoppedNew;
 			motors_stop();
+			s = 0;
 		}
 		else {
 			// TODO: Probably use a PID controller
+			
+			int ultrasonValueFiltered;
+			int mini = 1000, maxi = -1000;
+			
+			if (s < 10){
+				arr[s++] = ultrasonicSensorLastMeasurementCM;
+			}
+			else {
+				int i;
+				for (i=0; i<9; i++)
+					arr[i] = arr[i+1];
+				arr[9] = ultrasonicSensorLastMeasurementCM;
+			}
+			
+			int i,j;
+			int arr2[10];
+			for(i=0;i<10;i++)
+				arr2[i] = arr[i];
+			
+			for (i=0; i<s; i++)
+				for (j=i+1; j<s; j++)
+					if (arr2[i]>arr2[j]){
+						int temp = arr2[i];
+						arr2[i] = arr2[j];
+						arr2[j] = temp;
+					}
+					
+			ultrasonValueFiltered = (arr2[4]+arr2[5]) / 2;
+			
 			
 			double Ku = Kp / 0.6;
 			double Tu = dt;
@@ -146,35 +182,30 @@ void Controller_Auto_Update() {
 			double Kii = Ki*Ku/Tu;
 			double Kdd = Kd*Ku*Tu/40;
 			
-			double target = 20.;
+			double target = 13.;
 			
 			double err = (ultrasonicSensorLastMeasurementCM - target);
 			
 			double derivative = (err-lastError) / dt;
-			double secondOrderErrorDerivative = (derivative - lastErrorDerivative) / dt;
 			cumulativeError += err * dt;
 			
-			double pid_value = Kp*err;
+			double pid_value = Kp*err + Kii*cumulativeError +  Kdd*derivative;
 			
 			double rightMotorSpeed = 0.5+pid_value;
 			double leftMotorSpeed  = 0.5-pid_value;
 			
-			if (secondOrderErrorDerivative > Kk)
+			if (err > lastError && abs(pid_value) > 5)
 			{
-				rightMotorSpeed = Kd;
-				leftMotorSpeed = Ki;
+				rightMotorSpeed = leftMotorSpeed = 0.5;
 			}
 			
-			if (rightMotorSpeed > 1)	rightMotorSpeed = 1;
-			if (rightMotorSpeed < 0.1)	rightMotorSpeed = 0.1;
-			if (leftMotorSpeed > 1)	leftMotorSpeed = 1;
-			if (leftMotorSpeed < 0.1)	leftMotorSpeed = 0.1;
+			if(leftMotorSpeed < -0.1) leftMotorSpeed = -0.1;
+			if(rightMotorSpeed < -0.1) rightMotorSpeed = -0.1;
 			
 			Motors_Set_Scaled_Speed(0, leftMotorSpeed);
 			Motors_Set_Scaled_Speed(1, rightMotorSpeed);
 			
 			lastError = err;
-			lastErrorDerivative = derivative;
 		}
 	}
 }
