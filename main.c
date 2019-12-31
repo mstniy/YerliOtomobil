@@ -68,7 +68,7 @@ static const char* get_current_controller_mode_name() {
 }
 
 static void create_status_information(char* buf) {
-	sprintf(buf, "{\"ms\":%u, \"speeds\": [%.02f, %.02f], \"spin\":%u, \"pmeter\":%0.2f, \"distance\":%0.1f,\"light_level_left\":%u,\"light_level_right\":%u,\"op_mode\":\"%s\"}\r\n",
+	sprintf(buf, "{\"ms\":%u, \"speeds\": [%.02lf, %.02lf], \"spin\":%u, \"pmeter\":%0.2lf, \"distance\":%0.1lf,\"light_level_left\":%u,\"light_level_right\":%u,\"op_mode\":\"%s\"}\r\n",
 		get_ms(),
 		Motors_Get_Last_Scaled_Speed(0),
 		Motors_Get_Last_Scaled_Speed(1),
