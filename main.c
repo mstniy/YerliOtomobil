@@ -15,10 +15,13 @@
 #include "testers.h"
 #include "controller.h"
 
+#define LOG_PERIOD_MS 100
+
 static void serial_recv_callback(volatile char* buffer, int old_size, int new_size);
 static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size);
 
 static int log_on=0;
+static uint32_t log_last_send_ms = 0;
 
 static void init() {
 	Motors_Init();
@@ -84,7 +87,8 @@ static void update() {
 		controller_auto_state = Wait;
 	}
 	
-	if (log_on && controller_loop_counter%2 == 0) { // A period of 100 ms
+	if (log_on && get_ms() - log_last_send_ms >= LOG_PERIOD_MS) {
+		log_last_send_ms = get_ms();
 		create_status_information(status_buf);
 		uart_write(3, status_buf);
 	}

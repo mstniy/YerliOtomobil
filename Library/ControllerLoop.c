@@ -20,8 +20,8 @@ static void Controller_Loop_Timer_Init() {
 
 static void Controller_Loop_Start_Timer() {
 	TIMER1->MR0 = CONTROLLER_LOOP_PERIOD_MS + TIMER1->TC;
-	//Raise an interrupt when MR0 matches TC and reset TC.
-	TIMER1->MCR = 3;
+	//Raise an interrupt when MR0 matches TC.
+	TIMER1->MCR = 1;
 	//Remove the reset on counters.
 	TIMER1->TCR &= ~(1<<1);
 	//Enable Timer Counter and Prescale Counter for counting.
@@ -34,8 +34,13 @@ void Controller_Loop_Init(Controller_Callback cb) {
 	Controller_Loop_Start_Timer();
 }
 
+uint32_t get_ms() {
+	return TIMER1->TC;
+}
+
 void TIMER1_IRQHandler() {
 	//Write HIGH bit value to IR Register for Corresponding Interrupt
 	TIMER1->IR = 1;
+	TIMER1->MR0 += CONTROLLER_LOOP_PERIOD_MS;
 	controller_callback();
 }

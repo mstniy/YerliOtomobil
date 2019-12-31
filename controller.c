@@ -23,9 +23,7 @@ volatile Controller_Mode controller_mode = ModeTest; // Start in test mode
 static const uint32_t TEST_LEFT_RIGHT_SPIN_COUNT = 6;
 static const uint32_t TEST_LEFT_RIGHT_LED_BLINK_MS = 500;
 static uint32_t test_left_right_start_spin_count;
-static uint32_t test_left_right_start_controller_loop_counter;
-
-uint32_t controller_loop_counter=0;
+static uint32_t test_left_right_start_ms;
 
 void motors_stop() {
 	Motors_Set_Scaled_Speed(0, 0);
@@ -66,7 +64,7 @@ void Controller_Test_Update() {
 	}
 	if (controller_test_state == LeftNew) {
 		test_left_right_start_spin_count = spin_counter_get_count();
-		test_left_right_start_controller_loop_counter = controller_loop_counter;
+		test_left_right_start_ms = get_ms();
 		motors_left();
 		Offboard_LEDs_Set_State(1,0,1,0);
 		controller_test_state = LeftOngoing;
@@ -77,7 +75,7 @@ void Controller_Test_Update() {
 			controller_test_state = Stop;
 		}
 		else {
-			if ((controller_loop_counter - test_left_right_start_controller_loop_counter) * CONTROLLER_LOOP_PERIOD_MS % TEST_LEFT_RIGHT_LED_BLINK_MS < TEST_LEFT_RIGHT_LED_BLINK_MS/2)
+			if ((get_ms() - test_left_right_start_ms) % TEST_LEFT_RIGHT_LED_BLINK_MS < TEST_LEFT_RIGHT_LED_BLINK_MS/2)
 				Offboard_LEDs_Set_State(1,0,1,0);
 			else
 				Offboard_LEDs_Set_State(0,0,0,0);
@@ -86,7 +84,7 @@ void Controller_Test_Update() {
 	}
 	else if (controller_test_state == RightNew) {
 		test_left_right_start_spin_count = spin_counter_get_count();
-		test_left_right_start_controller_loop_counter = controller_loop_counter;
+		test_left_right_start_ms = get_ms();
 		motors_right();
 		Offboard_LEDs_Set_State(0,1,0,1);
 		controller_test_state = RightOngoing;
@@ -97,7 +95,7 @@ void Controller_Test_Update() {
 			controller_test_state = Stop;
 		}
 		else {
-			if ((controller_loop_counter - test_left_right_start_controller_loop_counter) * CONTROLLER_LOOP_PERIOD_MS % TEST_LEFT_RIGHT_LED_BLINK_MS < TEST_LEFT_RIGHT_LED_BLINK_MS/2)
+			if ((get_ms() - test_left_right_start_ms) % TEST_LEFT_RIGHT_LED_BLINK_MS < TEST_LEFT_RIGHT_LED_BLINK_MS/2)
 				Offboard_LEDs_Set_State(0,1,0,1);
 			else
 				Offboard_LEDs_Set_State(0,0,0,0);
@@ -148,7 +146,6 @@ void Controller_Manual_Update() {
 }
 
 void Controller_Update() {
-	controller_loop_counter++;
 	if (controller_mode == ModeTest) {
 		Controller_Test_Update();
 	}

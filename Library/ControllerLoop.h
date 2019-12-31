@@ -9,5 +9,6 @@
 typedef void (*Controller_Callback)();
 
 void Controller_Loop_Init(Controller_Callback cb);
+uint32_t get_ms(void);
 
 #endif
