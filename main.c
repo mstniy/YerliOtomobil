@@ -126,35 +126,26 @@ static void update() {
 				 controller_test_state != RightOngoing) // ignore STOP command while turning
 				controller_test_state = Stop;
 		}
-		else if (strcmp(line, "AUTO")==0) {
-			controller_auto_state = Wait;
-			controller_mode = ModeAuto;
-		}
-		strcat(line, "\r\n");
 		uart_write(3, line);
-		if (strcmp(line, "AUTO\r\n")==0)
-			uart_write(3, "AUTONOMOUS\r\n");
+		uart_write(3, "\r\n");
 	}
 	else if (controller_mode == ModeAuto) {
-		if (strcmp(line, "TEST")==0) {
-			uart_write(3, "TESTING\r\n");
-			controller_test_state = Stop;
-			controller_mode = ModeTest;
-			return;
-		}
-		else if (strcmp(line, "STOP")==0) {
+		if (strcmp(line, "STOP")==0) {
 				controller_auto_state = Wait;
 		}
 		if (controller_auto_state == Wait) {
 			if (strcmp(line, "START")==0)
 				controller_auto_state = Started;
 		}
+		uart_write(3, line);
+		uart_write(3, "\r\n");
 	}
 	else if (controller_mode == ModeManual) {
 		for (char* cp=line; *cp; cp++)
 			if (*cp == ',')
 				*cp = '.';
 		sscanf(line, "DC %lf %lf", &controller_manual_left, &controller_manual_right);
+		uart_write(3, "OK\r\n");
 	}
 }
 
