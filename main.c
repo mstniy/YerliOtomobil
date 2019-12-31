@@ -18,6 +18,8 @@
 static void serial_recv_callback(volatile char* buffer, int old_size, int new_size);
 static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size);
 
+static int log_on=0;
+
 static void init() {
 	Motors_Init();
 	Controller_Loop_Init(Controller_Update);
@@ -81,6 +83,11 @@ static void update() {
 		uart_write(3, "FINISH\r\n");
 		controller_auto_state = Wait;
 	}
+	
+	if (log_on && controller_loop_counter%2 == 0) { // A period of 100 ms
+		create_status_information(status_buf);
+		uart_write(3, status_buf);
+	}
 		
 	if(uart_readline(3, "\r\n", line) == -1) {
 		return;
@@ -91,6 +98,14 @@ static void update() {
 		create_status_information(status_buf);
 		uart_write(3, status_buf);
 		return;
+	}
+	if (strcmp(line, "LOG ON") == 0) {
+		log_on = 1;
+		return ;
+	}
+	if (strcmp(line, "LOG OFF") == 0) {
+		log_on = 0;
+		return ;
 	}
 	if (strcmp(line, "AUTO") == 0) {
 		controller_auto_state = Wait;

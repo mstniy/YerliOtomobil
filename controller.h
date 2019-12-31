@@ -1,6 +1,8 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include <stdint.h>
+
 typedef enum {
 	LeftNew, LeftOngoing, RightNew, RightOngoing, Forward, Back, Stop
 } Controller_Test_State;
@@ -18,6 +20,7 @@ extern volatile Controller_Test_State controller_test_state;
 extern volatile Controller_Auto_State controller_auto_state;
 extern volatile double controller_manual_left, controller_manual_right;
 extern volatile Controller_Mode controller_mode;
+extern uint32_t controller_loop_counter; // Outsiders shall not write to this variable.
 
 void Controller_Update(void);
 

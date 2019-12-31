@@ -25,7 +25,7 @@ static const uint32_t TEST_LEFT_RIGHT_LED_BLINK_MS = 500;
 static uint32_t test_left_right_start_spin_count;
 static uint32_t test_left_right_start_controller_loop_counter;
 
-static uint32_t controller_loop_counter=0;
+uint32_t controller_loop_counter=0;
 
 void motors_stop() {
 	Motors_Set_Scaled_Speed(0, 0);
