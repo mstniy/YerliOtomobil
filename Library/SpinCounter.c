@@ -20,6 +20,6 @@ void GPIO_IRQHandler() {
 	count++;
 }
 
-int spin_counter_get_count(){
+uint32_t spin_counter_get_count(){
 	return count;
 }

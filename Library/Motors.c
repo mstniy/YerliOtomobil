@@ -2,6 +2,8 @@
 #include "Motors.h"
 #include "ADC.h"
 
+static double last_speeds[2];
+
 void Motors_Init(void) {
 	const uint32_t port1mask = (1<<20)|(1<<23);
 	const uint32_t port0mask = (1<<5);
@@ -17,9 +19,14 @@ void Motors_Init(void) {
 	Motors_Set_Scaled_Speed(1, 0);
 }
 
+double Motors_Get_Last_Scaled_Speed(int motor_index) {
+	return last_speeds[motor_index];
+}
+
 void Motors_Set_Scaled_Speed(int motor_index, double speed) {
 	const double potentiometerLimit = ADC_GetLastValueOfPotentiometer()/4095.0; // Potentiometer acts as a speed multiplicator
 	int in1, in2;
+	last_speeds[motor_index] = speed;
 	if (speed == 0)
 		in1 = in2 = LOW; // Brake
 	else if (speed > 0) {
