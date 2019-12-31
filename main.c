@@ -160,7 +160,6 @@ static void update() {
 			if (*cp == ',')
 				*cp = '.';
 		sscanf(line, "DC %lf %lf", &controller_manual_left, &controller_manual_right);
-		uart_write(3, "OK\r\n");
 	}
 }
 
