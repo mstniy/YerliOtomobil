@@ -20,7 +20,6 @@ extern volatile Controller_Test_State controller_test_state;
 extern volatile Controller_Auto_State controller_auto_state;
 extern volatile double controller_manual_left, controller_manual_right;
 extern volatile Controller_Mode controller_mode;
-extern volatile double Kp, Kd, Ki, Kk;
 
 void Controller_Update(void);
 
