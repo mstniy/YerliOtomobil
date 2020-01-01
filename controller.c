@@ -18,12 +18,19 @@
 
 #include "math.h"
 
+#define ULTRASOUND_FAULT_THRESHOLD_CM 60
+
 typedef enum {
 	Usual=0,
 	SearchTurningLeft, SearchTurningRight, SearchTurningLeftAgain, SearchForward, // Will loop until a wall is found
 	GoAwayRight, GoAwayForward,
 	ComeCloseLeft, ComeCloseForward, ComeCloseRight
 } AutoControllerInternalState;
+
+static AutoControllerInternalState acis = Usual;
+static double lasts[3] = {0};
+static int lasts_size = 0;
+static int correction_action_start_ms;
 
 volatile Controller_Test_State controller_test_state = Stop;
 volatile Controller_Auto_State controller_auto_state;
@@ -120,7 +127,7 @@ void Controller_Test_Update() {
 		motors_stop();
 }
 
-double getMedian(double a, double b, double c) {
+static double getMedian(double a, double b, double c) {
 	double tmp;
 	if (a>b) {
 		tmp = a;
@@ -140,11 +147,56 @@ double getMedian(double a, double b, double c) {
 	return b;
 }
 
+static void AutoControllerSetMotorStates() {
+	if (acis == Usual) {
+		Motors_Set_Scaled_Speed(0, 0.35); // "Usual" does not have a fixed speed, it may try to nodge the vehicle to the left or to the right, if the distance error is small enough. But this is a nice approximation.
+		Motors_Set_Scaled_Speed(1, 0.35);
+	}
+	if (acis == SearchTurningLeft) {
+		Motors_Set_Scaled_Speed(0, -0.8);
+		Motors_Set_Scaled_Speed(1, 0.8);
+	}
+	else if (acis == SearchTurningRight) {
+		Motors_Set_Scaled_Speed(0, 0.8);
+		Motors_Set_Scaled_Speed(1, -0.8);
+	}
+	else if (acis == SearchTurningLeftAgain) {
+		Motors_Set_Scaled_Speed(0, -0.8);
+		Motors_Set_Scaled_Speed(1, 0.8);
+	}
+	else if (acis == SearchForward) {
+		Motors_Set_Scaled_Speed(0, 0.35);
+		Motors_Set_Scaled_Speed(1, 0.35);
+	}
+	else if (acis == GoAwayRight) {
+		Motors_Set_Scaled_Speed(0, 0.8);
+		Motors_Set_Scaled_Speed(1, -0.8);
+	}
+	else if (acis == GoAwayForward) {
+		Motors_Set_Scaled_Speed(0, 0.4);
+		Motors_Set_Scaled_Speed(1, 0.4);
+	}
+	else if (acis == ComeCloseLeft) {
+		Motors_Set_Scaled_Speed(0, -0.8);
+		Motors_Set_Scaled_Speed(1, 0.8);
+	}
+	else if (acis == ComeCloseForward) {
+		Motors_Set_Scaled_Speed(0, 0.4);
+		Motors_Set_Scaled_Speed(1, 0.4);
+	}
+	else if (acis == ComeCloseRight) {
+		Motors_Set_Scaled_Speed(0, 0.8);
+		Motors_Set_Scaled_Speed(1, -0.8);
+	}
+}
+
+static void AutoControllerChangeState(AutoControllerInternalState _acis) {
+	acis = _acis;
+	AutoControllerSetMotorStates();
+	correction_action_start_ms = get_ms();
+}
+
 void Controller_Auto_Update() {
-	static volatile AutoControllerInternalState acis = Usual;
-	static double lasts[3] = {0};
-	static volatile int lasts_size = 0;
-	static int correction_action_start_ms;
 	double medianCM=0;
 	
 	if (controller_auto_state != StartedNew && controller_auto_state != StartedStale) {
@@ -152,16 +204,16 @@ void Controller_Auto_Update() {
 		return;
 	}
 	
-	if (check_bright_light()) {
-		controller_auto_state = StoppedNew;
-		motors_stop();
-		return ;
-	}
-	
 	if (controller_auto_state == StartedNew) {
 		acis = Usual;
 		lasts_size = 0;
 		controller_auto_state = StartedStale;
+		return ;
+	}
+	
+	if (check_bright_light()) {
+		controller_auto_state = StoppedNew;
+		motors_stop();
 		return ;
 	}
 	
@@ -176,130 +228,73 @@ void Controller_Auto_Update() {
 	}
 	
 	if (acis == SearchTurningLeft) {
-		if (medianCM <= 50) {
-			Motors_Set_Scaled_Speed(0, 0);
-			Motors_Set_Scaled_Speed(1, 0);
-			acis = Usual;
-		}
-		if (get_ms() - correction_action_start_ms >= 500) {
-			acis = SearchTurningRight;
-			correction_action_start_ms = get_ms();
-			Motors_Set_Scaled_Speed(0, 0.8);
-			Motors_Set_Scaled_Speed(1, -0.8);
-		}
+		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
+			AutoControllerChangeState(Usual);
+		if (get_ms() - correction_action_start_ms >= 500)
+			AutoControllerChangeState(SearchTurningRight);
 		return ;
 	}
 	else if (acis == SearchTurningRight) {
-		if (medianCM <= 50) {
-			Motors_Set_Scaled_Speed(0, 0);
-			Motors_Set_Scaled_Speed(1, 0);
-			acis = Usual;
-		}
-		if (get_ms() - correction_action_start_ms >= 1000) {
-			acis = SearchTurningLeftAgain;
-			correction_action_start_ms = get_ms();
-			Motors_Set_Scaled_Speed(0, -0.8);
-			Motors_Set_Scaled_Speed(1, 0.8);
-		}
+		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
+			AutoControllerChangeState(Usual);
+		if (get_ms() - correction_action_start_ms >= 1000)
+			AutoControllerChangeState(SearchTurningLeftAgain);
 		return ;
 	}
 	else if (acis == SearchTurningLeftAgain) {
-		if (medianCM <= 50) {
-			Motors_Set_Scaled_Speed(0, 0);
-			Motors_Set_Scaled_Speed(1, 0);
-			acis = Usual;
-		}
-		if (get_ms() - correction_action_start_ms >= 600) {
-			acis = SearchForward;
-			correction_action_start_ms = get_ms();
-			Motors_Set_Scaled_Speed(0, 0.35);
-			Motors_Set_Scaled_Speed(1, 0.35);
-		}
+		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
+			AutoControllerChangeState(Usual);
+		if (get_ms() - correction_action_start_ms >= 600)
+			AutoControllerChangeState(SearchForward);
 		return ;
 	}
 	else if (acis == SearchForward) {
-		if (medianCM <= 50) {
-			Motors_Set_Scaled_Speed(0, 0);
-			Motors_Set_Scaled_Speed(1, 0);
-			acis = Usual;
-		}
-		if (get_ms() - correction_action_start_ms >= 500) {
-			Motors_Set_Scaled_Speed(0, -0.8);
-			Motors_Set_Scaled_Speed(1, 0.8);
-			acis = SearchTurningLeft;
-			correction_action_start_ms = get_ms();
-		}
+		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
+			AutoControllerChangeState(Usual);
+		if (get_ms() - correction_action_start_ms >= 500)
+			AutoControllerChangeState(SearchTurningLeft);
 		return ;
 	}
 	else if (acis == GoAwayRight) {
-		if (get_ms() - correction_action_start_ms >= 500) {
-			Motors_Set_Scaled_Speed(0, 0.4);
-			Motors_Set_Scaled_Speed(1, 0.4);
-			acis = GoAwayForward;
-			correction_action_start_ms = get_ms();
-		}
+		if (get_ms() - correction_action_start_ms >= 500)
+			AutoControllerChangeState(GoAwayForward);
 		return ;
 	}
 	else if (acis == GoAwayForward) {
-		if (get_ms() - correction_action_start_ms >= 500) {
-			Motors_Set_Scaled_Speed(0, 0);
-			Motors_Set_Scaled_Speed(1, 0);
-			acis = Usual;
-		}
+		if (get_ms() - correction_action_start_ms >= 500)
+			AutoControllerChangeState(Usual);
 		return ;
 	}
 	else if (acis == ComeCloseLeft) {
-		if (get_ms() - correction_action_start_ms >= 500) {
-			Motors_Set_Scaled_Speed(0, 0.4);
-			Motors_Set_Scaled_Speed(1, 0.4);
-			acis = ComeCloseForward;
-			correction_action_start_ms = get_ms();
-		}
+		if (get_ms() - correction_action_start_ms >= 500)
+			AutoControllerChangeState(ComeCloseForward);
 		return ;
 	}
 	else if (acis == ComeCloseForward) {
-		if (get_ms() - correction_action_start_ms >= 1000) {
-			Motors_Set_Scaled_Speed(0, 0.8);
-			Motors_Set_Scaled_Speed(1, -0.8);
-			acis = ComeCloseRight;
-			correction_action_start_ms = get_ms();
-		}
+		if (get_ms() - correction_action_start_ms >= 1000)
+			AutoControllerChangeState(ComeCloseRight);
 		return ;
 	}
 	else if (acis == ComeCloseRight) {
-		if (get_ms() - correction_action_start_ms >= 450) {
-			Motors_Set_Scaled_Speed(0, 0);
-			Motors_Set_Scaled_Speed(1, 0);
-			acis = Usual;
-		}
+		if (get_ms() - correction_action_start_ms >= 450)
+			AutoControllerChangeState(Usual);
 		return ;
 	}
 	
-	if (lasts_size>=3 && medianCM > 60) { // Wrong sensor measurement. Probably the wall turning sharply, thus the echo not making it to the sensor.
-		Motors_Set_Scaled_Speed(0, -0.8);
-		Motors_Set_Scaled_Speed(1, 0.8);
-		acis = SearchTurningLeft;
-		correction_action_start_ms = get_ms();
+	if (lasts_size>=3 && medianCM > ULTRASOUND_FAULT_THRESHOLD_CM) { // Wrong sensor measurement. Probably the wall turning sharply, thus the echo not making it to the sensor.
+		AutoControllerChangeState(SearchTurningLeft);
 		return ;
 	}
 	
 	if (lasts_size>=3 && medianCM < 20) {
-		Motors_Set_Scaled_Speed(0, 0.8);
-		Motors_Set_Scaled_Speed(1, -0.8);
-		acis = GoAwayRight;
-		correction_action_start_ms = get_ms();
-		return ;
+		AutoControllerChangeState(GoAwayRight);
 	}
 	else if (medianCM < 25) {
 		Motors_Set_Scaled_Speed(0, 0.7);
 		Motors_Set_Scaled_Speed(1, 0.2);
 	}
 	else if (lasts_size>=3 && medianCM > 35) {
-		Motors_Set_Scaled_Speed(0, -0.8);
-		Motors_Set_Scaled_Speed(1, 0.8);
-		acis = ComeCloseLeft;
-		correction_action_start_ms = get_ms();
-		return ;
+		AutoControllerChangeState(ComeCloseLeft);
 	}
 	else if (medianCM > 30) {
 		Motors_Set_Scaled_Speed(0, 0.2);
