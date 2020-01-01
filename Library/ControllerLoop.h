@@ -4,7 +4,7 @@
 #include "Timer.h"
 #include "SystemStructures.h"
 
-#define CONTROLLER_LOOP_PERIOD_MS 50
+#define CONTROLLER_LOOP_PERIOD_MS 100
 
 typedef void (*Controller_Callback)();
 
