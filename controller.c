@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <arm_math.h>
 
 #include "controller.h"
 #include "LPC407x_8x_177x_8x.h"
@@ -108,6 +109,12 @@ void Controller_Test_Update() {
 		motors_backward();
 	else if (controller_test_state == Stop)
 		motors_stop();
+}
+
+float32_t dot_prod(const float32_t* a, const float32_t* b, uint32_t len) {
+	float32_t res;
+	arm_dot_prod_f32(a, b, len, &res);
+	return res;
 }
 
 void Controller_Auto_Update() {
