@@ -26,6 +26,10 @@ static const uint32_t TEST_LEFT_RIGHT_LED_BLINK_MS = 500;
 static uint32_t test_left_right_start_spin_count;
 static uint32_t test_left_right_start_ms;
 
+#define AUTO_US_WINDOW_LEN 20
+
+static float auto_ultrasonicWindow[AUTO_US_WINDOW_LEN];
+
 void motors_stop() {
 	Motors_Set_Scaled_Speed(0, 0);
 	Motors_Set_Scaled_Speed(1, 0);
@@ -128,22 +132,13 @@ void Controller_Auto_Update() {
 		if (check_bright_light()) {
 			controller_auto_state = StoppedNew;
 			motors_stop();
+			return ;
 		}
-		else {
-			// TODO: Probably use a PID controller
-			diff = abs(ultrasonicSensorLastMeasurementCM - 25);
-			if (diff > 25) {
-					diff = 25;
-			}
-			if (ultrasonicSensorLastMeasurementCM > 25) {
-				Motors_Set_Scaled_Speed(0, 1 - (diff/25.0) * 0.99);
-				Motors_Set_Scaled_Speed(1, 1);
-			}
-			else {
-				Motors_Set_Scaled_Speed(0, 1);
-				Motors_Set_Scaled_Speed(1, 1 - (diff/25.0) * 0.8);
-			}
-		}
+		memmove(auto_ultrasonicWindow, auto_ultrasonicWindow+1, AUTO_US_WINDOW_LEN);
+		auto_ultrasonicWindow[AUTO_US_WINDOW_LEN-1] = ultrasonicSensorLastMeasurementCM;
+		//TODO: Run the ml model
+		Motors_Set_Scaled_Speed(0, 1);
+		Motors_Set_Scaled_Speed(1, 1);
 	}
 }
 
