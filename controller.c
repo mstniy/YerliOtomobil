@@ -15,6 +15,8 @@
 #include "Library/ControllerLoop.h"
 #include "Library/SpinCounter.h"
 
+#include "math.h"
+
 volatile Controller_Test_State controller_test_state = Stop;
 volatile Controller_Auto_State controller_auto_state;
 volatile double controller_manual_left, controller_manual_right;
@@ -24,6 +26,10 @@ static const uint32_t TEST_LEFT_RIGHT_SPIN_COUNT = 6;
 static const uint32_t TEST_LEFT_RIGHT_LED_BLINK_MS = 500;
 static uint32_t test_left_right_start_spin_count;
 static uint32_t test_left_right_start_ms;
+
+volatile double Kp = 0.05, Kd = 1, Ki = 0, Kk = 60;
+double cumulativeError, lastError, lastErrorDerivative;
+const double dt = 0.05;
 
 void motors_stop() {
 	Motors_Set_Scaled_Speed(0, 0);
@@ -51,6 +57,12 @@ void motors_backward() {
 	Motors_Set_Scaled_Speed(0, -1);
 	Motors_Set_Scaled_Speed(1, -1);
 	Offboard_LEDs_Set_State(0,0,1,1);
+}
+
+void setPID(double _Kp, double _Ki, double _Kd) {
+	Kp = _Kp;
+	Ki = _Ki;
+	Kd = _Kd;
 }
 
 int check_bright_light() {
@@ -110,32 +122,88 @@ void Controller_Test_Update() {
 		motors_stop();
 }
 
+#define abs(xx) (xx < 0 ? -(xx) : (xx))
+
 void Controller_Auto_Update() {
-	int diff; 
+	
+	static int arr[10];
+	int s = 0;
 	
 	if (controller_auto_state == Wait || controller_auto_state == StoppedNew) {
 		motors_stop();
+		s = 0;
 		return;
 	}
 	if (controller_auto_state == Started) {
 		if (check_bright_light()) {
 			controller_auto_state = StoppedNew;
 			motors_stop();
+			s = 0;
 		}
 		else {
 			// TODO: Probably use a PID controller
-			diff = abs(ultrasonicSensorLastMeasurementCM - 25);
-			if (diff > 25) {
-					diff = 25;
-			}
-			if (ultrasonicSensorLastMeasurementCM > 25) {
-				Motors_Set_Scaled_Speed(0, 1 - (diff/25.0) * 0.99);
-				Motors_Set_Scaled_Speed(1, 1);
+			
+			int ultrasonValueFiltered;
+			int mini = 1000, maxi = -1000;
+			
+			if (s < 10){
+				arr[s++] = ultrasonicSensorLastMeasurementCM;
 			}
 			else {
-				Motors_Set_Scaled_Speed(0, 1);
-				Motors_Set_Scaled_Speed(1, 1 - (diff/25.0) * 0.8);
+				int i;
+				for (i=0; i<9; i++)
+					arr[i] = arr[i+1];
+				arr[9] = ultrasonicSensorLastMeasurementCM;
 			}
+			
+			int i,j;
+			int arr2[10];
+			for(i=0;i<10;i++)
+				arr2[i] = arr[i];
+			
+			for (i=0; i<s; i++)
+				for (j=i+1; j<s; j++)
+					if (arr2[i]>arr2[j]){
+						int temp = arr2[i];
+						arr2[i] = arr2[j];
+						arr2[j] = temp;
+					}
+					
+			ultrasonValueFiltered = (arr2[4]+arr2[5]) / 2;
+			
+			
+			double Ku = Kp / 0.6;
+			double Tu = dt;
+			double Ti = Tu / 2;
+			double Td = Tu / 8;
+			
+			double Kii = Ki*Ku/Tu;
+			double Kdd = Kd*Ku*Tu/40;
+			
+			double target = 13.;
+			
+			double err = (ultrasonicSensorLastMeasurementCM - target);
+			
+			double derivative = (err-lastError) / dt;
+			cumulativeError += err * dt;
+			
+			double pid_value = Kp*err + Kii*cumulativeError +  Kdd*derivative;
+			
+			double rightMotorSpeed = 0.5+pid_value;
+			double leftMotorSpeed  = 0.5-pid_value;
+			
+			if (err > lastError && abs(pid_value) > 5)
+			{
+				rightMotorSpeed = leftMotorSpeed = 0.5;
+			}
+			
+			if(leftMotorSpeed < -0.1) leftMotorSpeed = -0.1;
+			if(rightMotorSpeed < -0.1) rightMotorSpeed = -0.1;
+			
+			Motors_Set_Scaled_Speed(0, leftMotorSpeed);
+			Motors_Set_Scaled_Speed(1, rightMotorSpeed);
+			
+			lastError = err;
 		}
 	}
 }

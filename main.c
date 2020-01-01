@@ -134,6 +134,10 @@ static void update() {
 		uart_write(3, "MANUAL\r\n");
 		return ;
 	}
+	if (strncmp(line, "PID", 3) == 0) {
+		sscanf(line, "%*s %lf %lf %lf %lf", &Kp, &Ki, &Kd, &Kk);
+		return;
+	}
 	if (controller_mode == ModeTest) {
 		if (strcmp(line, "LEFT")==0)
 			controller_test_state = LeftNew;
