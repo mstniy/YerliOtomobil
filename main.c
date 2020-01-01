@@ -157,9 +157,7 @@ static void update() {
 		}
 		if (controller_auto_state == Wait) {
 			if (strcmp(line, "START")==0) {
-				correction_mode = 0;
-				lasts_size = 0;
-				controller_auto_state = Started;
+				controller_auto_state = StartedNew;
 			}
 		}
 		uart_write(3, line);

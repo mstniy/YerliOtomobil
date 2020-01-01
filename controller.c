@@ -18,6 +18,13 @@
 
 #include "math.h"
 
+typedef enum {
+	Usual=0,
+	SearchTurningLeft, SearchTurningRight, SearchTurningLeftAgain, SearchForward, // Will loop until a wall is found
+	GoAwayRight, GoAwayForward,
+	ComeCloseLeft, ComeCloseForward, ComeCloseRight
+} AutoControllerInternalState;
+
 volatile Controller_Test_State controller_test_state = Stop;
 volatile Controller_Auto_State controller_auto_state;
 volatile double controller_manual_left, controller_manual_right;
@@ -27,10 +34,6 @@ static const uint32_t TEST_LEFT_RIGHT_SPIN_COUNT = 6;
 static const uint32_t TEST_LEFT_RIGHT_LED_BLINK_MS = 500;
 static uint32_t test_left_right_start_spin_count;
 static uint32_t test_left_right_start_ms;
-
-volatile int correction_mode = 0; // 0: not in correction mode. 1: turning left. 2: turning right, 3: turning left again, 4: fotward, 5: go away right, 6: go away forward, 7: come close left, 8: come close forward, 9: come close right
-double lasts[3] = {0};
-volatile int lasts_size = 0;
 
 void motors_stop() {
 	Motors_Set_Scaled_Speed(0, 0);
@@ -137,13 +140,14 @@ double getMedian(double a, double b, double c) {
 	return b;
 }
 
-#define CORRECTION_DURATION_MS 500
-
 void Controller_Auto_Update() {
+	static volatile AutoControllerInternalState acis = Usual;
+	static double lasts[3] = {0};
+	static volatile int lasts_size = 0;
 	static int correction_action_start_ms;
 	double medianCM=0;
 	
-	if (controller_auto_state != Started) {
+	if (controller_auto_state != StartedNew && controller_auto_state != StartedStale) {
 		motors_stop();
 		return;
 	}
@@ -151,6 +155,13 @@ void Controller_Auto_Update() {
 	if (check_bright_light()) {
 		controller_auto_state = StoppedNew;
 		motors_stop();
+		return ;
+	}
+	
+	if (controller_auto_state == StartedNew) {
+		acis = Usual;
+		lasts_size = 0;
+		controller_auto_state = StartedStale;
 		return ;
 	}
 	
@@ -164,102 +175,102 @@ void Controller_Auto_Update() {
 		medianCM = getMedian(lasts[0], lasts[1], lasts[2]);
 	}
 	
-	if (correction_mode == 1) {
+	if (acis == SearchTurningLeft) {
 		if (medianCM <= 50) {
 			Motors_Set_Scaled_Speed(0, 0);
 			Motors_Set_Scaled_Speed(1, 0);
-			correction_mode = 0;
+			acis = Usual;
 		}
-		if (get_ms() - correction_action_start_ms >= CORRECTION_DURATION_MS) {
-			correction_mode = 2;
+		if (get_ms() - correction_action_start_ms >= 500) {
+			acis = SearchTurningRight;
 			correction_action_start_ms = get_ms();
 			Motors_Set_Scaled_Speed(0, 0.8);
 			Motors_Set_Scaled_Speed(1, -0.8);
 		}
 		return ;
 	}
-	else if (correction_mode == 2) {
+	else if (acis == SearchTurningRight) {
 		if (medianCM <= 50) {
 			Motors_Set_Scaled_Speed(0, 0);
 			Motors_Set_Scaled_Speed(1, 0);
-			correction_mode = 0;
+			acis = Usual;
 		}
-		if (get_ms() - correction_action_start_ms >= CORRECTION_DURATION_MS*2) {
-			correction_mode = 3;
+		if (get_ms() - correction_action_start_ms >= 1000) {
+			acis = SearchTurningLeftAgain;
 			correction_action_start_ms = get_ms();
 			Motors_Set_Scaled_Speed(0, -0.8);
 			Motors_Set_Scaled_Speed(1, 0.8);
 		}
 		return ;
 	}
-	else if (correction_mode == 3) {
+	else if (acis == SearchTurningLeftAgain) {
 		if (medianCM <= 50) {
 			Motors_Set_Scaled_Speed(0, 0);
 			Motors_Set_Scaled_Speed(1, 0);
-			correction_mode = 0;
+			acis = Usual;
 		}
-		if (get_ms() - correction_action_start_ms >= CORRECTION_DURATION_MS*120/100) {
-			correction_mode = 4;
+		if (get_ms() - correction_action_start_ms >= 600) {
+			acis = SearchForward;
 			correction_action_start_ms = get_ms();
 			Motors_Set_Scaled_Speed(0, 0.35);
 			Motors_Set_Scaled_Speed(1, 0.35);
 		}
 		return ;
 	}
-	else if (correction_mode == 4) {
+	else if (acis == SearchForward) {
 		if (medianCM <= 50) {
 			Motors_Set_Scaled_Speed(0, 0);
 			Motors_Set_Scaled_Speed(1, 0);
-			correction_mode = 0;
+			acis = Usual;
 		}
-		if (get_ms() - correction_action_start_ms >= CORRECTION_DURATION_MS) {
+		if (get_ms() - correction_action_start_ms >= 500) {
 			Motors_Set_Scaled_Speed(0, -0.8);
 			Motors_Set_Scaled_Speed(1, 0.8);
-			correction_mode = 1;
+			acis = SearchTurningLeft;
 			correction_action_start_ms = get_ms();
 		}
 		return ;
 	}
-	else if (correction_mode == 5) {
-		if (get_ms() - correction_action_start_ms >= CORRECTION_DURATION_MS) {
+	else if (acis == GoAwayRight) {
+		if (get_ms() - correction_action_start_ms >= 500) {
 			Motors_Set_Scaled_Speed(0, 0.4);
 			Motors_Set_Scaled_Speed(1, 0.4);
-			correction_mode = 6;
+			acis = GoAwayForward;
 			correction_action_start_ms = get_ms();
 		}
 		return ;
 	}
-	else if (correction_mode == 6) {
-		if (get_ms() - correction_action_start_ms >= CORRECTION_DURATION_MS) {
+	else if (acis == GoAwayForward) {
+		if (get_ms() - correction_action_start_ms >= 500) {
 			Motors_Set_Scaled_Speed(0, 0);
 			Motors_Set_Scaled_Speed(1, 0);
-			correction_mode = 0;
+			acis = Usual;
 		}
 		return ;
 	}
-	else if (correction_mode == 7) {
-		if (get_ms() - correction_action_start_ms >= CORRECTION_DURATION_MS) {
+	else if (acis == ComeCloseLeft) {
+		if (get_ms() - correction_action_start_ms >= 500) {
 			Motors_Set_Scaled_Speed(0, 0.4);
 			Motors_Set_Scaled_Speed(1, 0.4);
-			correction_mode = 8;
+			acis = ComeCloseForward;
 			correction_action_start_ms = get_ms();
 		}
 		return ;
 	}
-	else if (correction_mode == 8) {
-		if (get_ms() - correction_action_start_ms >= CORRECTION_DURATION_MS*2) {
+	else if (acis == ComeCloseForward) {
+		if (get_ms() - correction_action_start_ms >= 1000) {
 			Motors_Set_Scaled_Speed(0, 0.8);
 			Motors_Set_Scaled_Speed(1, -0.8);
-			correction_mode = 9;
+			acis = ComeCloseRight;
 			correction_action_start_ms = get_ms();
 		}
 		return ;
 	}
-	else if (correction_mode == 9) {
-		if (get_ms() - correction_action_start_ms >= CORRECTION_DURATION_MS*90/100) {
+	else if (acis == ComeCloseRight) {
+		if (get_ms() - correction_action_start_ms >= 450) {
 			Motors_Set_Scaled_Speed(0, 0);
 			Motors_Set_Scaled_Speed(1, 0);
-			correction_mode = 0;
+			acis = Usual;
 		}
 		return ;
 	}
@@ -267,7 +278,7 @@ void Controller_Auto_Update() {
 	if (lasts_size>=3 && medianCM > 60) { // Wrong sensor measurement. Probably the wall turning sharply, thus the echo not making it to the sensor.
 		Motors_Set_Scaled_Speed(0, -0.8);
 		Motors_Set_Scaled_Speed(1, 0.8);
-		correction_mode = 1;
+		acis = SearchTurningLeft;
 		correction_action_start_ms = get_ms();
 		return ;
 	}
@@ -275,7 +286,7 @@ void Controller_Auto_Update() {
 	if (lasts_size>=3 && medianCM < 20) {
 		Motors_Set_Scaled_Speed(0, 0.8);
 		Motors_Set_Scaled_Speed(1, -0.8);
-		correction_mode = 5;
+		acis = GoAwayRight;
 		correction_action_start_ms = get_ms();
 		return ;
 	}
@@ -286,7 +297,7 @@ void Controller_Auto_Update() {
 	else if (lasts_size>=3 && medianCM > 35) {
 		Motors_Set_Scaled_Speed(0, -0.8);
 		Motors_Set_Scaled_Speed(1, 0.8);
-		correction_mode = 7;
+		acis = ComeCloseLeft;
 		correction_action_start_ms = get_ms();
 		return ;
 	}
