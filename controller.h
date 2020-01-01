@@ -21,6 +21,10 @@ extern volatile Controller_Auto_State controller_auto_state;
 extern volatile double controller_manual_left, controller_manual_right;
 extern volatile Controller_Mode controller_mode;
 
+extern volatile int correction_mode;
+extern double lasts[3];
+extern volatile int lasts_size;
+
 void Controller_Update(void);
 
 #endif
