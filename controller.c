@@ -22,7 +22,7 @@
 
 typedef enum {
 	Usual=0,
-	SearchTurningLeft, SearchTurningRight, SearchTurningLeftAgain, SearchForward, // Will loop until a wall is found
+	SearchTurningRight, SearchTurningLeft, SearchTurningRightAgain, SearchForward, // Will loop until a wall is found
 	GoAwayRight, GoAwayForward,
 	ComeCloseLeft, ComeCloseForward, ComeCloseRight
 } AutoControllerInternalState;
@@ -152,17 +152,17 @@ static void AutoControllerSetMotorStates() {
 		Motors_Set_Scaled_Speed(0, 0.35); // "Usual" does not have a fixed speed, it may try to nodge the vehicle to the left or to the right, if the distance error is small enough. But this is a nice approximation.
 		Motors_Set_Scaled_Speed(1, 0.35);
 	}
-	if (acis == SearchTurningLeft) {
-		Motors_Set_Scaled_Speed(0, -0.8);
-		Motors_Set_Scaled_Speed(1, 0.8);
-	}
 	else if (acis == SearchTurningRight) {
 		Motors_Set_Scaled_Speed(0, 0.8);
 		Motors_Set_Scaled_Speed(1, -0.8);
 	}
-	else if (acis == SearchTurningLeftAgain) {
+	else if (acis == SearchTurningLeft) {
 		Motors_Set_Scaled_Speed(0, -0.8);
 		Motors_Set_Scaled_Speed(1, 0.8);
+	}
+	else if (acis == SearchTurningRightAgain) {
+		Motors_Set_Scaled_Speed(0, 0.8);
+		Motors_Set_Scaled_Speed(1, -0.8);
 	}
 	else if (acis == SearchForward) {
 		Motors_Set_Scaled_Speed(0, 0.35);
@@ -227,24 +227,24 @@ void Controller_Auto_Update() {
 		medianCM = getMedian(lasts[0], lasts[1], lasts[2]);
 	}
 	
-	if (acis == SearchTurningLeft) {
+	if (acis == SearchTurningRight) {
 		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
 		if (get_ms() - correction_action_start_ms >= 500)
-			AutoControllerChangeState(SearchTurningRight);
+			AutoControllerChangeState(SearchTurningLeft);
 		return ;
 	}
-	else if (acis == SearchTurningRight) {
+	else if (acis == SearchTurningLeft) {
 		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
-		if (get_ms() - correction_action_start_ms >= 1000)
-			AutoControllerChangeState(SearchTurningLeftAgain);
+		if (get_ms() - correction_action_start_ms >= 1100)
+			AutoControllerChangeState(SearchTurningRightAgain);
 		return ;
 	}
-	else if (acis == SearchTurningLeftAgain) {
+	else if (acis == SearchTurningRightAgain) {
 		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
-		if (get_ms() - correction_action_start_ms >= 600)
+		if (get_ms() - correction_action_start_ms >= 500)
 			AutoControllerChangeState(SearchForward);
 		return ;
 	}
@@ -252,7 +252,7 @@ void Controller_Auto_Update() {
 		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
 		if (get_ms() - correction_action_start_ms >= 500)
-			AutoControllerChangeState(SearchTurningLeft);
+			AutoControllerChangeState(SearchTurningRight);
 		return ;
 	}
 	else if (acis == GoAwayRight) {
@@ -282,7 +282,7 @@ void Controller_Auto_Update() {
 	}
 	
 	if (lasts_size>=3 && medianCM > ULTRASOUND_FAULT_THRESHOLD_CM) { // Wrong sensor measurement. Probably the wall turning sharply, thus the echo not making it to the sensor.
-		AutoControllerChangeState(SearchTurningLeft);
+		AutoControllerChangeState(SearchTurningRight);
 		return ;
 	}
 	
