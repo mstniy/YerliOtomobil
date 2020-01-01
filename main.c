@@ -15,8 +15,13 @@
 #include "testers.h"
 #include "controller.h"
 
+#define LOG_PERIOD_MS 100
+
 static void serial_recv_callback(volatile char* buffer, int old_size, int new_size);
 static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size);
+
+static int log_on=0;
+static uint32_t log_last_send_ms = 0;
 
 static void init() {
 	Motors_Init();
@@ -63,7 +68,10 @@ static const char* get_current_controller_mode_name() {
 }
 
 static void create_status_information(char* buf) {
-	sprintf(buf, "{\"ivme\":%d, {\"spin_count\":%d, \"potentiometer\":%0.2f, \"distance\":%d,\"light_level_left\":%d,\"light_level_right\":%d,\"op_mode\":\"%s\"}\r\n",
+	sprintf(buf, "{\"ms\":%u, \"speeds\": [%.02lf, %.02lf], \"spin\":%u, \"pmeter\":%0.2lf, \"distance\":%0.1lf,\"light_level_left\":%u,\"light_level_right\":%u,\"op_mode\":\"%s\"}\r\n",
+		get_ms(),
+		Motors_Get_Last_Scaled_Speed(0),
+		Motors_Get_Last_Scaled_Speed(1),
 		spin_counter_get_count(),
 		ADC_GetLastValueOfPotentiometer()/4095.0,
 		ultrasonicSensorLastMeasurementCM,
@@ -81,6 +89,12 @@ static void update() {
 		uart_write(3, "FINISH\r\n");
 		controller_auto_state = Wait;
 	}
+	
+	if (log_on && get_ms() - log_last_send_ms >= LOG_PERIOD_MS) {
+		log_last_send_ms = get_ms();
+		create_status_information(status_buf);
+		uart_write(3, status_buf);
+	}
 		
 	if(uart_readline(3, "\r\n", line) == -1) {
 		return;
@@ -91,6 +105,14 @@ static void update() {
 		create_status_information(status_buf);
 		uart_write(3, status_buf);
 		return;
+	}
+	if (strcmp(line, "LOG ON") == 0) {
+		log_on = 1;
+		return ;
+	}
+	if (strcmp(line, "LOG OFF") == 0) {
+		log_on = 0;
+		return ;
 	}
 	if (strcmp(line, "AUTO") == 0) {
 		controller_auto_state = Wait;
@@ -130,29 +152,19 @@ static void update() {
 				 controller_test_state != RightOngoing) // ignore STOP command while turning
 				controller_test_state = Stop;
 		}
-		else if (strcmp(line, "AUTO")==0) {
-			controller_auto_state = Wait;
-			controller_mode = ModeAuto;
-		}
-		strcat(line, "\r\n");
 		uart_write(3, line);
-		if (strcmp(line, "AUTO\r\n")==0)
-			uart_write(3, "AUTONOMOUS\r\n");
+		uart_write(3, "\r\n");
 	}
 	else if (controller_mode == ModeAuto) {
-		if (strcmp(line, "TEST")==0) {
-			uart_write(3, "TESTING\r\n");
-			controller_test_state = Stop;
-			controller_mode = ModeTest;
-			return;
-		}
-		else if (strcmp(line, "STOP")==0) {
+		if (strcmp(line, "STOP")==0) {
 				controller_auto_state = Wait;
 		}
 		if (controller_auto_state == Wait) {
 			if (strcmp(line, "START")==0)
 				controller_auto_state = Started;
 		}
+		uart_write(3, line);
+		uart_write(3, "\r\n");
 	}
 	else if (controller_mode == ModeManual) {
 		for (char* cp=line; *cp; cp++)

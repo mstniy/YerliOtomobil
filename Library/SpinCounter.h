@@ -1,7 +1,9 @@
 #ifndef SPIN_COUNTER_H
 #define SPIN_COUNTER_H
 
+#include <stdint.h>
+
 void spin_counter_init(void);
-int spin_counter_get_count(void);
+uint32_t spin_counter_get_count(void);
 
 #endif

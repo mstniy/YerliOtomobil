@@ -100,11 +100,13 @@ static void UART_IRQHandler(int uart_id) {
 	const uint32_t origLen = UARTBufferIndexes[uart_id];
 	if (currentInterrupt & (1<<2)) { // RDA
 		while ((UART[uart_id]->LSR & 1) && // Receiver data ready
-						UARTBufferIndexes[uart_id] < UART_RECV_BUFFER_LENGTH-1) { // There is space in the buffer
+						UARTBufferIndexes[uart_id] < UART_RECV_BUFFER_LENGTH) { // There is space in the buffer
 			UARTBuffers[uart_id][UARTBufferIndexes[uart_id]++] = UART[uart_id]->RBR;
 		}
 		if (UARTRecvCallbacks[uart_id] != NULL)
 			UARTRecvCallbacks[uart_id](UARTBuffers[uart_id], origLen, UARTBufferIndexes[uart_id]); // Call the attached callback
+		if (UARTBufferIndexes[uart_id] >= UART_RECV_BUFFER_LENGTH) // If the buffer is full
+			UARTBufferIndexes[uart_id] = 0; // Clear the buffer to let new characters through. Note that this approach will result in the code getting partial lines, like "TUS" instead of "STATUS", in case the buffer ever gets full. I hope this doesn't cause any problems.
 	}
 }
 

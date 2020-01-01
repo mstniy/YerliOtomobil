@@ -1,6 +1,8 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include <stdint.h>
+
 typedef enum {
 	LeftNew, LeftOngoing, RightNew, RightOngoing, Forward, Back, Stop
 } Controller_Test_State;

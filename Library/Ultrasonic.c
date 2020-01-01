@@ -2,7 +2,7 @@
 
 static uint32_t ultrasonicSensorRisingCaptureTime;
 volatile uint8_t ultrasonicSensorNewDataAvailable = 0;
-volatile int ultrasonicSensorLastMeasurementCM;
+volatile double ultrasonicSensorLastMeasurementCM;
 
 static void Ultrasonic_Trigger_Timer_Init() {
 	uint32_t temp;
