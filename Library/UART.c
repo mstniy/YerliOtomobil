@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "UART.h"
+#include "CircularQueue.h"
 #include "SystemStructures.h"
 
 static volatile LPC_UART_TypeDef* const UART[] = {
@@ -26,12 +27,11 @@ static const IRQn_Type UART_IRQn[] = {
 };
 
 #define UART_RECV_BUFFER_LENGTH 128
-#define UART_SEND_BUFFER_LENGTH 128
+#define UART_SEND_BUFFER_LENGTH CQ_CAPACITY
 
 static char UARTRecvBuffers[4][UART_RECV_BUFFER_LENGTH];
-static char UARTSendBuffers[4][UART_SEND_BUFFER_LENGTH];
+static CircularQueue UARTSendBuffers[4];
 static int	UARTRecvBufferIndexes[4];
-static int	UARTSendBufferIndexes[4];
 static volatile UARTRecvCallback UARTRecvCallbacks[4];
 
 static void uart_set_baud_rate(volatile LPC_UART_TypeDef* uart, uint32_t baud_rate) {
@@ -85,12 +85,11 @@ void uart_init(uint8_t uart_id, uint32_t baud_rate) {
 };
 
 static void THRBlast(uint8_t uart_id) {
+	const int sendBufferSize = CQGetLen(&UARTSendBuffers[uart_id]);
 	int i;
-	for (i=0; i<16 && i<UARTSendBufferIndexes[uart_id]; i++) { // 408x UARTs have 16 byte receive and transmit FIFOs
-		UART[uart_id]->THR = UARTSendBuffers[uart_id][i];
+	for (i=0; i<16 && i<sendBufferSize; i++) { // 408x UARTs have 16 byte receive and transmit FIFOs
+		UART[uart_id]->THR = CQPop(&UARTSendBuffers[uart_id]);
 	}
-	memmove(UARTSendBuffers[uart_id], UARTSendBuffers[uart_id]+i, UARTSendBufferIndexes[uart_id]-i); //TODO: Use a circular queue
-	UARTSendBufferIndexes[uart_id] -= i;
 }
 
 void uart_write(uint8_t uart_id, const char *s) {
@@ -107,11 +106,11 @@ void uart_write_n(uint8_t uart_id, const char *s, int len) {
 	irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
 	NVIC_DisableIRQ(UART_IRQn[uart_id]);
 	
-	if (UARTSendBufferIndexes[uart_id] + len > UART_SEND_BUFFER_LENGTH) // If the buffer would overflow
-		UARTSendBufferIndexes[uart_id] = 0; // Flush the send buffer
+	if (CQGetLen(&UARTSendBuffers[uart_id]) + len > UART_SEND_BUFFER_LENGTH) { // If the buffer would overflow
+		CQClear(&UARTSendBuffers[uart_id]); // Flush the send buffer
+	}
 	
-	memcpy(UARTSendBuffers + UARTSendBufferIndexes[uart_id], s, len);
-	UARTSendBufferIndexes[uart_id] += len;
+	CQPush_n(&UARTSendBuffers[uart_id], s, len);
 	
 	if ((UART[uart_id]->LSR & (1<<5)) == 0) { // If THRE is set, initiate the THRE interrupt loop
 		THRBlast(uart_id);
