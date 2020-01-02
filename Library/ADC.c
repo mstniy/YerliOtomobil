@@ -12,7 +12,7 @@ static int channel_map[3] = {ADC_LEFT_CHANNEL, ADC_RIGHT_CHANNEL, ADC_POTENTIOME
 static int current_channel = LEFT_LDR;
 
 static int toLightLevel(int meas) {
-	double res = -0.35275*meas+1340.45;
+	double res = -0.4145*meas+1658;
 	if (res < 0)
 		res = 0;
 	if (res > 1023)

@@ -71,7 +71,7 @@ void motors_backward() {
 }
 
 int check_bright_light() {
-	return ADC_GetLastValueOfLeftLDR() >= 800 || ADC_GetLastValueOfRightLDR() >= 800;
+	return ADC_GetLastValueOfLeftLDR() >= 500 || ADC_GetLastValueOfRightLDR() >= 500;
 }
 
 void Controller_Test_Update() {	
@@ -149,32 +149,35 @@ static double getMedian(double a, double b, double c) {
 
 static void AutoControllerSetMotorStates() {
 	if (acis == Usual) {
-		Motors_Set_Scaled_Speed(0, 0.35); // "Usual" does not have a fixed speed, it may try to nodge the vehicle to the left or to the right, if the distance error is small enough. But this is a nice approximation.
-		Motors_Set_Scaled_Speed(1, 0.35);
+		Motors_Set_Scaled_Speed(0, 0.6); // "Usual" does not have a fixed speed, it may try to nodge the vehicle to the left or to the right, if the distance error is small enough. But this is a nice approximation.
+		Motors_Set_Scaled_Speed(1, 0.6);
 	}
 	if (acis == SearchTurningLeft) {
+		uart_write(3, "S\r\n");
 		Motors_Set_Scaled_Speed(0, -0.8);
 		Motors_Set_Scaled_Speed(1, 0.8);
 	}
 	else if (acis == SearchForward) {
-		Motors_Set_Scaled_Speed(0, 0.35);
-		Motors_Set_Scaled_Speed(1, 0.35);
+		Motors_Set_Scaled_Speed(0, 0.6);
+		Motors_Set_Scaled_Speed(1, 0.6);
 	}
 	else if (acis == GoAwayRight) {
+		uart_write(3, "GA\r\n");
 		Motors_Set_Scaled_Speed(0, 0.8);
 		Motors_Set_Scaled_Speed(1, -0.8);
 	}
 	else if (acis == GoAwayForward) {
-		Motors_Set_Scaled_Speed(0, 0.4);
-		Motors_Set_Scaled_Speed(1, 0.4);
+		Motors_Set_Scaled_Speed(0, 0.6);
+		Motors_Set_Scaled_Speed(1, 0.6);
 	}
 	else if (acis == ComeCloseLeft) {
-		Motors_Set_Scaled_Speed(0, -0.8);
-		Motors_Set_Scaled_Speed(1, 0.8);
+		uart_write(3, "CC\r\n");
+		Motors_Set_Scaled_Speed(0, -1);
+		Motors_Set_Scaled_Speed(1, 1);
 	}
 	else if (acis == ComeCloseForward) {
-		Motors_Set_Scaled_Speed(0, 0.4);
-		Motors_Set_Scaled_Speed(1, 0.4);
+		Motors_Set_Scaled_Speed(0, 0.6);
+		Motors_Set_Scaled_Speed(1, 0.6);
 	}
 	else if (acis == ComeCloseRight) {
 		Motors_Set_Scaled_Speed(0, 0.8);
@@ -222,19 +225,17 @@ void Controller_Auto_Update() {
 	if (acis == SearchTurningLeft) {
 		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
-		if (get_ms() - correction_action_start_ms >= 500)
+		if (get_ms() - correction_action_start_ms >= 400)
 			AutoControllerChangeState(SearchForward);
 		return ;
 	}
 	else if (acis == SearchForward) {
-		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
-			AutoControllerChangeState(Usual);
-		if (get_ms() - correction_action_start_ms >= 1000)
+		if (get_ms() - correction_action_start_ms >= 750)
 			AutoControllerChangeState(SearchTurningLeft);
 		return ;
 	}
 	else if (acis == GoAwayRight) {
-		if (get_ms() - correction_action_start_ms >= 500)
+		if (get_ms() - correction_action_start_ms >= 300)
 			AutoControllerChangeState(GoAwayForward);
 		return ;
 	}
@@ -244,17 +245,17 @@ void Controller_Auto_Update() {
 		return ;
 	}
 	else if (acis == ComeCloseLeft) {
-		if (get_ms() - correction_action_start_ms >= 500)
+		if (get_ms() - correction_action_start_ms >= 200)
 			AutoControllerChangeState(ComeCloseForward);
 		return ;
 	}
 	else if (acis == ComeCloseForward) {
-		if (get_ms() - correction_action_start_ms >= 1000)
+		if (get_ms() - correction_action_start_ms >= 200)
 			AutoControllerChangeState(ComeCloseRight);
 		return ;
 	}
 	else if (acis == ComeCloseRight) {
-		if (get_ms() - correction_action_start_ms >= 450)
+		if (get_ms() - correction_action_start_ms >= 200)
 			AutoControllerChangeState(Usual);
 		return ;
 	}
@@ -264,7 +265,7 @@ void Controller_Auto_Update() {
 		return ;
 	}
 	
-	if (lasts_size>=3 && medianCM < 7) {
+	if (lasts_size>=3 && medianCM < 12) {
 		AutoControllerChangeState(GoAwayRight);
 	}
 	else if (medianCM < 15) {
@@ -275,8 +276,8 @@ void Controller_Auto_Update() {
 		AutoControllerChangeState(ComeCloseLeft);
 	}
 	else if (medianCM > 30) {
-		Motors_Set_Scaled_Speed(0, 0.2);
-		Motors_Set_Scaled_Speed(1, 0.7);
+		Motors_Set_Scaled_Speed(0, 0.3);
+		Motors_Set_Scaled_Speed(1, 1);
 	}
 	else {
 		Motors_Set_Scaled_Speed(0, 0.6);
