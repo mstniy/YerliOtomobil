@@ -290,8 +290,8 @@ void Controller_Auto_Update() {
 		AutoControllerChangeState(GoAwayRight);
 	}
 	else if (medianCM < 15) {
-		Motors_Set_Scaled_Speed(0, 0.7);
-		Motors_Set_Scaled_Speed(1, 0.2);
+		Motors_Set_Scaled_Speed(0, 1);
+		Motors_Set_Scaled_Speed(1, 0.3);
 	}
 	else if (lasts_size>=3 && medianCM > 35) {
 		AutoControllerChangeState(ComeCloseLeft);
@@ -301,8 +301,8 @@ void Controller_Auto_Update() {
 		Motors_Set_Scaled_Speed(1, 0.7);
 	}
 	else {
-		Motors_Set_Scaled_Speed(0, 0.35);
-		Motors_Set_Scaled_Speed(1, 0.35);
+		Motors_Set_Scaled_Speed(0, 0.6);
+		Motors_Set_Scaled_Speed(1, 0.6);
 	}
 }
 
