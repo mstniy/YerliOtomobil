@@ -286,10 +286,10 @@ void Controller_Auto_Update() {
 		return ;
 	}
 	
-	if (lasts_size>=3 && medianCM < 20) {
+	if (lasts_size>=3 && medianCM < 7) {
 		AutoControllerChangeState(GoAwayRight);
 	}
-	else if (medianCM < 25) {
+	else if (medianCM < 15) {
 		Motors_Set_Scaled_Speed(0, 0.7);
 		Motors_Set_Scaled_Speed(1, 0.2);
 	}
