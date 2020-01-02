@@ -272,16 +272,16 @@ void Controller_Auto_Update() {
 		Motors_Set_Scaled_Speed(0, 1);
 		Motors_Set_Scaled_Speed(1, 0.3);
 	}
-	else if (lasts_size>=3 && medianCM > 35) {
+	/*else if (lasts_size>=3 && medianCM > 35) {
 		AutoControllerChangeState(ComeCloseLeft);
-	}
+	}*/
 	else if (medianCM > 30) {
 		Motors_Set_Scaled_Speed(0, 0.3);
 		Motors_Set_Scaled_Speed(1, 1);
 	}
 	else {
-		Motors_Set_Scaled_Speed(0, 0.6);
-		Motors_Set_Scaled_Speed(1, 0.6);
+		Motors_Set_Scaled_Speed(0, 0.9);
+		Motors_Set_Scaled_Speed(1, 0.9);
 	}
 }
 
