@@ -22,7 +22,7 @@
 
 typedef enum {
 	Usual=0,
-	SearchTurningLeft, SearchTurningRight, SearchTurningLeftAgain, SearchForward, // Will loop until a wall is found
+	SearchTurningLeft, SearchForward, // Will loop until a wall is found
 	GoAwayRight, GoAwayForward,
 	ComeCloseLeft, ComeCloseForward, ComeCloseRight
 } AutoControllerInternalState;
@@ -156,14 +156,6 @@ static void AutoControllerSetMotorStates() {
 		Motors_Set_Scaled_Speed(0, -0.8);
 		Motors_Set_Scaled_Speed(1, 0.8);
 	}
-	else if (acis == SearchTurningRight) {
-		Motors_Set_Scaled_Speed(0, 0.8);
-		Motors_Set_Scaled_Speed(1, -0.8);
-	}
-	else if (acis == SearchTurningLeftAgain) {
-		Motors_Set_Scaled_Speed(0, -0.8);
-		Motors_Set_Scaled_Speed(1, 0.8);
-	}
 	else if (acis == SearchForward) {
 		Motors_Set_Scaled_Speed(0, 0.35);
 		Motors_Set_Scaled_Speed(1, 0.35);
@@ -231,27 +223,13 @@ void Controller_Auto_Update() {
 		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
 		if (get_ms() - correction_action_start_ms >= 500)
-			AutoControllerChangeState(SearchTurningRight);
-		return ;
-	}
-	else if (acis == SearchTurningRight) {
-		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
-			AutoControllerChangeState(Usual);
-		if (get_ms() - correction_action_start_ms >= 1000)
-			AutoControllerChangeState(SearchTurningLeftAgain);
-		return ;
-	}
-	else if (acis == SearchTurningLeftAgain) {
-		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
-			AutoControllerChangeState(Usual);
-		if (get_ms() - correction_action_start_ms >= 600)
 			AutoControllerChangeState(SearchForward);
 		return ;
 	}
 	else if (acis == SearchForward) {
 		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
-		if (get_ms() - correction_action_start_ms >= 500)
+		if (get_ms() - correction_action_start_ms >= 1000)
 			AutoControllerChangeState(SearchTurningLeft);
 		return ;
 	}
