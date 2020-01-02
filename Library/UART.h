@@ -18,7 +18,7 @@ void uart_init(uint8_t uart_id, uint32_t baud_rate);
 int32_t uart_readline(uint8_t uart_id, const char* eol, char* s);
 // uart_write* will flush the send buffer if it gets full.
 void uart_write(uint8_t uart_id, const char *s);
-void uart_write_n(uint8_t uart_id, const char *s, int len);
+void uart_write_n(uint8_t uart_id, const char *s, uint32_t len);
 void uart_attach_recv_callback(uint8_t uart_id, UARTRecvCallback cb);
 void uart_clear_recv_buffer(uint8_t uart_id);
 

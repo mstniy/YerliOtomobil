@@ -96,7 +96,7 @@ void uart_write(uint8_t uart_id, const char *s) {
 	uart_write_n(uart_id, s, strlen(s));
 }
 
-void uart_write_n(uint8_t uart_id, const char *s, int len) {
+void uart_write_n(uint8_t uart_id, const char *s, uint32_t len) {
 	uint32_t irq_enabled_state;
 	
 	if (len > UART_SEND_BUFFER_LENGTH) // Too long
