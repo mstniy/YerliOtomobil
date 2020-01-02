@@ -127,7 +127,7 @@ void Controller_Test_Update() {
 		motors_stop();
 }
 
-static double getMedian(double a, double b, double c) {
+/*static double getMedian(double a, double b, double c) {
 	double tmp;
 	if (a>b) {
 		tmp = a;
@@ -145,7 +145,7 @@ static double getMedian(double a, double b, double c) {
 		b = tmp;
 	}
 	return b;
-}
+}*/
 
 static void AutoControllerSetMotorStates() {
 	if (acis == Usual) {
@@ -192,7 +192,7 @@ static void AutoControllerChangeState(AutoControllerInternalState _acis) {
 }
 
 void Controller_Auto_Update() {
-	double medianCM=0;
+	double minCM;
 	
 	if (controller_auto_state != StartedNew && controller_auto_state != StartedStale) {
 		motors_stop();
@@ -215,21 +215,25 @@ void Controller_Auto_Update() {
 	memmove(lasts, lasts+1, 2*sizeof(double));
 	lasts[2] = ultrasonicSensorLastMeasurementCM;
 	lasts_size++;
-	if (lasts_size<2) {
-		medianCM = lasts[2];
+	if (lasts_size>=3) {
+		minCM = lasts[0];
+		if (lasts[1] < minCM) minCM = lasts[1];
+		if (lasts[2] < minCM) minCM = lasts[2];
 	}
 	else {
-		medianCM = getMedian(lasts[0], lasts[1], lasts[2]);
+		minCM = lasts[2];
 	}
 	
 	if (acis == SearchTurningLeft) {
-		if (medianCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
+		if (minCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
 		if (get_ms() - correction_action_start_ms >= 400)
 			AutoControllerChangeState(SearchForward);
 		return ;
 	}
 	else if (acis == SearchForward) {
+		if (minCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
+			AutoControllerChangeState(Usual);
 		if (get_ms() - correction_action_start_ms >= 750)
 			AutoControllerChangeState(SearchTurningLeft);
 		return ;
@@ -260,22 +264,22 @@ void Controller_Auto_Update() {
 		return ;
 	}
 	
-	if (lasts_size>=3 && medianCM > ULTRASOUND_FAULT_THRESHOLD_CM) { // Wrong sensor measurement. Probably the wall turning sharply, thus the echo not making it to the sensor.
+	if (lasts_size>=3 && minCM > ULTRASOUND_FAULT_THRESHOLD_CM) { // Wrong sensor measurement. Probably the wall turning sharply, thus the echo not making it to the sensor.
 		AutoControllerChangeState(SearchTurningLeft);
 		return ;
 	}
 	
-	if (lasts_size>=3 && medianCM < 12) {
+	if (lasts_size>=3 && minCM < 12) {
 		AutoControllerChangeState(GoAwayRight);
 	}
-	else if (medianCM < 15) {
+	else if (minCM < 15) {
 		Motors_Set_Scaled_Speed(0, 1);
 		Motors_Set_Scaled_Speed(1, 0.3);
 	}
-	/*else if (lasts_size>=3 && medianCM > 35) {
+	/*else if (lasts_size>=3 && minCM > 35) {
 		AutoControllerChangeState(ComeCloseLeft);
 	}*/
-	else if (medianCM > 30) {
+	else if (minCM > 30) {
 		Motors_Set_Scaled_Speed(0, 0.3);
 		Motors_Set_Scaled_Speed(1, 1);
 	}
