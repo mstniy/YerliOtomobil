@@ -25,10 +25,13 @@ static const IRQn_Type UART_IRQn[] = {
 	UART0_IRQn, 0, UART2_IRQn, UART3_IRQn
 };
 
-static const int UART_RECV_BUFFER_LENGTH = 128;
+#define UART_RECV_BUFFER_LENGTH 128
+#define UART_SEND_BUFFER_LENGTH 128
 
-static char UARTBuffers[4][UART_RECV_BUFFER_LENGTH];
-static int	 UARTBufferIndexes[4];
+static char UARTRecvBuffers[4][UART_RECV_BUFFER_LENGTH];
+static char UARTSendBuffers[4][UART_SEND_BUFFER_LENGTH];
+static int	UARTRecvBufferIndexes[4];
+static int	UARTSendBufferIndexes[4];
 static volatile UARTRecvCallback UARTRecvCallbacks[4];
 
 static void uart_set_baud_rate(volatile LPC_UART_TypeDef* uart, uint32_t baud_rate) {
@@ -75,38 +78,64 @@ void uart_init(uint8_t uart_id, uint32_t baud_rate) {
 										| (0 << 2) // 1 stop bit
 										| (0 << 3); // no parity bit
 		
-	UART[uart_id]->IER = 1;  // Enable RDA interrupts
+	UART[uart_id]->IER = 3;  // Enable RDA and THRE interrupts
 	NVIC_EnableIRQ(UART_IRQn[uart_id]);
 	NVIC_SetPriority(UART_IRQn[uart_id], 5);
 	//NVIC_ClearPendingIRQ(UART_IRQn[uart_id]);
 };
+
+static void THRBlast(uint8_t uart_id) {
+	int i;
+	for (i=0; i<16 && i<UARTSendBufferIndexes[uart_id]; i++) { // 408x UARTs have 16 byte receive and transmit FIFOs
+		UART[uart_id]->THR = UARTSendBuffers[uart_id][i];
+	}
+	memmove(UARTSendBuffers[uart_id], UARTSendBuffers[uart_id]+i, UARTSendBufferIndexes[uart_id]-i); //TODO: Use a circular queue
+	UARTSendBufferIndexes[uart_id] -= i;
+}
 
 void uart_write(uint8_t uart_id, const char *s) {
 	uart_write_n(uart_id, s, strlen(s));
 }
 
 void uart_write_n(uint8_t uart_id, const char *s, int len) {
-	int i;
-	for (i=0; i<len; i++) {
-		// wait until THRE is set
-		while (!(UART[uart_id]->LSR & (1 << 5)))
-			;
-		UART[uart_id]->THR = s[i];
+	uint32_t irq_enabled_state;
+	
+	if (len > UART_SEND_BUFFER_LENGTH) // Too long
+		return ;
+	
+	// Disable interrupts to avoid race conditions
+	irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
+	NVIC_DisableIRQ(UART_IRQn[uart_id]);
+	
+	if (UARTSendBufferIndexes[uart_id] + len > UART_SEND_BUFFER_LENGTH) // If the buffer would overflow
+		UARTSendBufferIndexes[uart_id] = 0; // Flush the send buffer
+	
+	memcpy(UARTSendBuffers + UARTSendBufferIndexes[uart_id], s, len);
+	UARTSendBufferIndexes[uart_id] += len;
+	
+	if ((UART[uart_id]->LSR & (1<<5)) == 0) { // If THRE is set, initiate the THRE interrupt loop
+		THRBlast(uart_id);
 	}
+	
+	if (irq_enabled_state)
+		NVIC_EnableIRQ(UART_IRQn[uart_id]);
 }
 
 static void UART_IRQHandler(int uart_id) {
 	const uint32_t currentInterrupt = UART[uart_id]->IIR;
-	const uint32_t origLen = UARTBufferIndexes[uart_id];
-	if (currentInterrupt & (1<<2)) { // RDA
+	const uint32_t origLen = UARTRecvBufferIndexes[uart_id];
+	if (currentInterrupt & (2<<1)) { // RDA
 		while ((UART[uart_id]->LSR & 1) && // Receiver data ready
-						UARTBufferIndexes[uart_id] < UART_RECV_BUFFER_LENGTH) { // There is space in the buffer
-			UARTBuffers[uart_id][UARTBufferIndexes[uart_id]++] = UART[uart_id]->RBR;
+						UARTRecvBufferIndexes[uart_id] < UART_RECV_BUFFER_LENGTH) { // There is space in the buffer
+			UARTRecvBuffers[uart_id][UARTRecvBufferIndexes[uart_id]++] = UART[uart_id]->RBR;
 		}
 		if (UARTRecvCallbacks[uart_id] != NULL)
-			UARTRecvCallbacks[uart_id](UARTBuffers[uart_id], origLen, UARTBufferIndexes[uart_id]); // Call the attached callback
-		if (UARTBufferIndexes[uart_id] >= UART_RECV_BUFFER_LENGTH) // If the buffer is full
-			UARTBufferIndexes[uart_id] = 0; // Clear the buffer to let new characters through. Note that this approach will result in the code getting partial lines, like "TUS" instead of "STATUS", in case the buffer ever gets full. I hope this doesn't cause any problems.
+			UARTRecvCallbacks[uart_id](UARTRecvBuffers[uart_id], origLen, UARTRecvBufferIndexes[uart_id]); // Call the attached callback
+		if (UARTRecvBufferIndexes[uart_id] >= UART_RECV_BUFFER_LENGTH) // If the buffer is full
+			UARTRecvBufferIndexes[uart_id] = 0; // Clear the buffer to let new characters through. Note that this approach will result in the code getting partial lines, like "TUS" instead of "STATUS", in case the buffer ever gets full. I hope this doesn't cause any problems.
+	}
+	else if (currentInterrupt & (1<<1)) { // THRE
+		THRBlast(uart_id);
 	}
 }
 
@@ -135,27 +164,27 @@ int32_t my_str_in_str(const char* big, const char* str, int big_len) {
 int32_t uart_readline(uint8_t uart_id, const char* eol, char *s) {
 		int32_t i, eol_len, irq_enabled_state, search_result;
 	
-		if(UARTBufferIndexes[uart_id] == 0)
+		if(UARTRecvBufferIndexes[uart_id] == 0)
 			return -1;
 
 		eol_len = strlen(eol);
 		
-		if(UARTBufferIndexes[uart_id] < eol_len)
+		if(UARTRecvBufferIndexes[uart_id] < eol_len)
 			return -1;
 	
 		// Disable interrupts to avoid race conditions
 		irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
 		NVIC_DisableIRQ(UART_IRQn[uart_id]);
 		
-		search_result = my_str_in_str(UARTBuffers[uart_id], eol, UARTBufferIndexes[uart_id]);
+		search_result = my_str_in_str(UARTRecvBuffers[uart_id], eol, UARTRecvBufferIndexes[uart_id]);
 		
 		if (search_result != -1) {
 			for (i=0; i<search_result; i++)
-				s[i] = UARTBuffers[uart_id][i];
+				s[i] = UARTRecvBuffers[uart_id][i];
 			s[i] = '\0';
-			for (i=0; i<UARTBufferIndexes[uart_id]-search_result-eol_len; i++)
-				UARTBuffers[uart_id][i] = UARTBuffers[uart_id][i+search_result+eol_len];
-			UARTBufferIndexes[uart_id]-=search_result+eol_len;
+			for (i=0; i<UARTRecvBufferIndexes[uart_id]-search_result-eol_len; i++)
+				UARTRecvBuffers[uart_id][i] = UARTRecvBuffers[uart_id][i+search_result+eol_len];
+			UARTRecvBufferIndexes[uart_id]-=search_result+eol_len;
 		}
 		
 		if (irq_enabled_state)
@@ -168,14 +197,14 @@ void uart_attach_recv_callback(uint8_t uart_id, UARTRecvCallback cb) {
 	UARTRecvCallbacks[uart_id] = cb;
 }
 
-void uart_clear_buffer(uint8_t uart_id) {
+void uart_clear_recv_buffer(uint8_t uart_id) {
 	uint32_t irq_enabled_state;
 	
 	// Disable interrupts to avoid race conditions
 	irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
 	NVIC_DisableIRQ(UART_IRQn[uart_id]);
 	
-	UARTBufferIndexes[uart_id] = 0;
+	UARTRecvBufferIndexes[uart_id] = 0;
 	
 	if (irq_enabled_state)
 		NVIC_EnableIRQ(UART_IRQn[uart_id]);
