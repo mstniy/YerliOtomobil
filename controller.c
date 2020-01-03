@@ -42,39 +42,39 @@ static const uint32_t TEST_LEFT_RIGHT_LED_BLINK_MS = 500;
 static uint32_t test_left_right_start_spin_count;
 static uint32_t test_left_right_start_ms;
 
-void motors_stop() {
+static void motors_stop() {
 	Motors_Set_Scaled_Speed(0, 0);
 	Motors_Set_Scaled_Speed(1, 0);
 	Offboard_LEDs_Set_State(0,0,0,0);
 }
 
-void motors_left() {
+static void motors_left() {
 	Motors_Set_Scaled_Speed(0, -1);
 	Motors_Set_Scaled_Speed(1, 1);
 }
 
-void motors_right() {
+static void motors_right() {
 	Motors_Set_Scaled_Speed(0, 1);
 	Motors_Set_Scaled_Speed(1, -1);
 }
 
-void motors_forward() {
+static void motors_forward() {
 	Motors_Set_Scaled_Speed(0, 1);
 	Motors_Set_Scaled_Speed(1, 1);
-	Offboard_LEDs_Set_State(1,1,0,0);
+	Offboard_LEDs_Forward();
 }
 
-void motors_backward() {
+static void motors_backward() {
 	Motors_Set_Scaled_Speed(0, -1);
 	Motors_Set_Scaled_Speed(1, -1);
-	Offboard_LEDs_Set_State(0,0,1,1);
+	Offboard_LEDs_Backward();
 }
 
-int check_bright_light() {
-	return ADC_GetLastValueOfLeftLDR() >= 500 || ADC_GetLastValueOfRightLDR() >= 500;
+static int check_bright_light() {
+	return ADC_GetLastValueOfLeftLDR() >= 300 || ADC_GetLastValueOfRightLDR() >= 300;
 }
 
-void Controller_Test_Update() {	
+static void Controller_Test_Update() {	
 	if (check_bright_light()) {
 		motors_stop();
 		return;
@@ -83,7 +83,7 @@ void Controller_Test_Update() {
 		test_left_right_start_spin_count = spin_counter_get_count();
 		test_left_right_start_ms = get_ms();
 		motors_left();
-		Offboard_LEDs_Set_State(1,0,1,0);
+		Offboard_LEDs_Left();
 		controller_test_state = LeftOngoing;
 	}
 	else if (controller_test_state == LeftOngoing) {
@@ -93,7 +93,7 @@ void Controller_Test_Update() {
 		}
 		else {
 			if ((get_ms() - test_left_right_start_ms) % TEST_LEFT_RIGHT_LED_BLINK_MS < TEST_LEFT_RIGHT_LED_BLINK_MS/2)
-				Offboard_LEDs_Set_State(1,0,1,0);
+				Offboard_LEDs_Left();
 			else
 				Offboard_LEDs_Set_State(0,0,0,0);
 			motors_left();
@@ -103,7 +103,7 @@ void Controller_Test_Update() {
 		test_left_right_start_spin_count = spin_counter_get_count();
 		test_left_right_start_ms = get_ms();
 		motors_right();
-		Offboard_LEDs_Set_State(0,1,0,1);
+		Offboard_LEDs_Right();
 		controller_test_state = RightOngoing;
 	}
 	else if (controller_test_state == RightOngoing) {
@@ -113,7 +113,7 @@ void Controller_Test_Update() {
 		}
 		else {
 			if ((get_ms() - test_left_right_start_ms) % TEST_LEFT_RIGHT_LED_BLINK_MS < TEST_LEFT_RIGHT_LED_BLINK_MS/2)
-				Offboard_LEDs_Set_State(0,1,0,1);
+				Offboard_LEDs_Right();
 			else
 				Offboard_LEDs_Set_State(0,0,0,0);
 			motors_right();
@@ -170,53 +170,58 @@ static const char* autoInternalStateToString(AutoControllerInternalState acis) {
 		return "UNKNOWN";
 }
 
-static void AutoControllerSetMotorStates() {
+static void AutoControllerChangeState(AutoControllerInternalState _acis) {
+	acis = _acis;
 	if (acis == Usual) {
 		Motors_Set_Scaled_Speed(0, 0.9); // "Usual" does not have a fixed speed, it may try to nodge the vehicle to the left or to the right, if the distance error is small enough. But this is a nice approximation.
 		Motors_Set_Scaled_Speed(1, 0.9);
+		Offboard_LEDs_Forward();
 	}
 	if (acis == SearchTurningLeft) {
 		Motors_Set_Scaled_Speed(0, -0.8);
 		Motors_Set_Scaled_Speed(1, 0.8);
+		Offboard_LEDs_Left();
 	}
 	else if (acis == SearchForward) {
 		Motors_Set_Scaled_Speed(0, 0.8);
 		Motors_Set_Scaled_Speed(1, 0.8);
+		Offboard_LEDs_Forward();
 	}
 	else if (acis == GoAwayRight) {
 		Motors_Set_Scaled_Speed(0, 0.8);
 		Motors_Set_Scaled_Speed(1, -0.8);
+		Offboard_LEDs_Right();
 	}
 	else if (acis == GoAwayForward) {
 		Motors_Set_Scaled_Speed(0, 1);
 		Motors_Set_Scaled_Speed(1, 1);
+		Offboard_LEDs_Forward();
 	}
 	else if (acis == ComeCloseLeft) {
 		Motors_Set_Scaled_Speed(0, -1);
 		Motors_Set_Scaled_Speed(1, 1);
+		Offboard_LEDs_Left();
 	}
 	else if (acis == ComeCloseForward) {
 		Motors_Set_Scaled_Speed(0, 0.6);
 		Motors_Set_Scaled_Speed(1, 0.6);
+		Offboard_LEDs_Forward();
 	}
 	else if (acis == ComeCloseRight) {
 		Motors_Set_Scaled_Speed(0, 1);
 		Motors_Set_Scaled_Speed(1, -1);
+		Offboard_LEDs_Right();
 	}
 	else if (acis == ComeCloseLeftAgain) {
 		Motors_Set_Scaled_Speed(0, -1);
 		Motors_Set_Scaled_Speed(1, 1);
+		Offboard_LEDs_Left();
 	}
-}
-
-static void AutoControllerChangeState(AutoControllerInternalState _acis) {
-	acis = _acis;
-	AutoControllerSetMotorStates();
 	correction_action_start_ms = get_ms();
 	uart_write(3, autoInternalStateToString(acis), 0);
 }
 
-void Controller_Auto_Update() {
+static void Controller_Auto_Update() {
 	double minCM, lastCM;
 	
 	if (controller_auto_state != StartedNew && controller_auto_state != StartedStale) {
@@ -225,9 +230,9 @@ void Controller_Auto_Update() {
 	}
 	
 	if (controller_auto_state == StartedNew) {
-		acis = Usual;
 		lasts_size = 0;
 		controller_auto_state = StartedStale;
+		AutoControllerChangeState(Usual);
 		return ;
 	}
 	
@@ -332,7 +337,7 @@ void Controller_Auto_Update() {
 	}
 }
 
-void Controller_Manual_Update() {
+static void Controller_Manual_Update() {
 	Motors_Set_Scaled_Speed(0, controller_manual_left);
 	Motors_Set_Scaled_Speed(1, controller_manual_right);
 }

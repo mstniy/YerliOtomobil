@@ -39,3 +39,19 @@ void Offboard_LEDs_Set_State(int fl_on, int fr_on, int bl_on, int br_on) {
 	
 	GPIO_PORT1->PIN = port1shadow;
 }
+
+void Offboard_LEDs_Forward() {
+		Offboard_LEDs_Set_State(1, 1, 0, 0);
+}
+
+void Offboard_LEDs_Backward() {
+	Offboard_LEDs_Set_State(0, 0, 1, 1);
+}
+
+void Offboard_LEDs_Left() {
+	Offboard_LEDs_Set_State(1, 0, 1, 0);
+}
+
+void Offboard_LEDs_Right() {
+	Offboard_LEDs_Set_State(0, 1, 0, 1);
+}
