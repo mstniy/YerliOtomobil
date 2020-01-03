@@ -93,18 +93,43 @@ static void THRBlast(uint8_t uart_id) {
 	}
 }
 
-void uart_write(uint8_t uart_id, const char *s, int blocking) {
-	uart_write_n(uart_id, s, strlen(s), blocking);
+static int uart_try_lock_send(int uart_id) {
+	uint32_t prim = __get_PRIMASK();
+	uint32_t res=0;
+	__disable_irq();
+	if (UARTSendLock[uart_id] == 0) {
+		UARTSendLock[uart_id] = 1;
+		res=1;
+	}
+	__set_PRIMASK(prim);
+	return res;
 }
 
-void uart_write_n(uint8_t uart_id, const char *s, uint32_t len, int blocking) {
+static void uart_release_send_lock(int uart_id) {
+	UARTSendLock[uart_id]=0;
+}
+
+void uart_write(uint8_t uart_id, const char *s, int may_block) {
+	uart_write_n(uart_id, s, strlen(s), may_block);
+}
+
+void uart_write_n(uint8_t uart_id, const char *s, uint32_t len, int may_block) {
 	uint32_t irq_enabled_state;
 	uint32_t pushLen;
 	
-	if (blocking==0 && len > UART_SEND_BUFFER_LENGTH) // Too long
+	if (may_block==0 && len > UART_SEND_BUFFER_LENGTH) // Too long
 		return ;
 	
+	while (uart_try_lock_send(uart_id)==0) {
+		if (may_block==0)
+			return ; // Give up
+	}
+	
 	while (len>0) {
+		if (may_block) {
+			while (*(volatile int*)&UARTSendBuffers[uart_id].full)
+				;
+		}
 		// Disable interrupts to avoid race conditions
 		irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
 		NVIC_DisableIRQ(UART_IRQn[uart_id]);
@@ -113,14 +138,7 @@ void uart_write_n(uint8_t uart_id, const char *s, uint32_t len, int blocking) {
 		if (len < pushLen)
 			pushLen = len;
 
-		if (blocking==1 && pushLen < len && pushLen == 0) {
-			if (irq_enabled_state)
-				NVIC_EnableIRQ(UART_IRQn[uart_id]);
-			__wfi();
-			continue;
-		}
-		
-		if (blocking==0 && pushLen < len) { // If the buffer would overflow
+		if (may_block==0 && pushLen < len) { // If the buffer would overflow
 			CQClear(&UARTSendBuffers[uart_id]); // Flush the send buffer
 		}
 		
@@ -136,6 +154,8 @@ void uart_write_n(uint8_t uart_id, const char *s, uint32_t len, int blocking) {
 		len -= pushLen;
 		s += pushLen;
 	}
+	
+	uart_release_send_lock(uart_id);
 }
 
 static void UART_IRQHandler(int uart_id) {
