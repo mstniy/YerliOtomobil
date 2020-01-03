@@ -7,6 +7,6 @@ void hm10_init(const char* name) {
 	strcpy(buf, "AT+NAME");
 	strcat(buf, name);
 	strcat(buf, "\r\n");
-	uart_write(3, buf);
-	uart_write(3, "AT+RESET\r\n");
+	uart_write(3, buf, 1);
+	uart_write(3, "AT+RESET\r\n", 1);
 }

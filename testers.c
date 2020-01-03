@@ -75,5 +75,5 @@ void update_bluetooth_test() {
 	n_read = uart_readline(0, "\r", buf);
 	buf[n_read++] = '\n';
 	buf[n_read] = '\0';
-	uart_write(3, buf); // Send to bluetooth
+	uart_write(3, buf, 1); // Send to bluetooth
 }

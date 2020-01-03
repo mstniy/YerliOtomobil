@@ -17,8 +17,8 @@
 
 #define LOG_PERIOD_MS 100
 
-static void serial_recv_callback(volatile char* buffer, int old_size, int new_size);
-static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size);
+//static void serial_recv_callback(volatile char* buffer, int old_size, int new_size);
+//static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size);
 
 static int log_on=0;
 static uint32_t log_last_send_ms = 0;
@@ -35,15 +35,15 @@ static void init() {
 	uart_init(0, 115200);
 	//uart_attach_recv_callback(0, serial_recv_callback);
 	//uart_attach_recv_callback(3, hm10_recv_callback);
-	uart_write(0, "Hello!\r\n");
+	uart_write(0, "Hello!\r\n", 1);
 	hm10_init("YerliOtomobil");
-	uart_write(3, "TESTING\r\n");
+	uart_write(3, "TESTING\r\n", 1);
 	
 	Offboard_LEDs_Set_State(0, 0, 0, 0);
 	Onboard_LEDs_Set_State(0, 0, 0, 0);
 }
 
-static void serial_recv_callback(volatile char* buffer, int old_size, int new_size) {
+/*static void serial_recv_callback(volatile char* buffer, int old_size, int new_size) {
 	volatile char* cur;
 	for (cur = buffer+old_size; cur<buffer+new_size; cur++) {
 		uart_write_n(0, (const char*)cur, 1);
@@ -55,7 +55,7 @@ static void serial_recv_callback(volatile char* buffer, int old_size, int new_si
 
 static void hm10_recv_callback(volatile char* buffer, int old_size, int new_size) {
 	uart_write_n(0, (const char *)(buffer+old_size), new_size-old_size);
-}
+}*/
 
 static const char* get_current_controller_mode_name() {
 	if (controller_mode == ModeAuto)
@@ -86,14 +86,14 @@ static void update() {
 	static char status_buf[256];
 	
 	if (controller_mode == ModeAuto && controller_auto_state==StoppedNew) {
-		uart_write(3, "FINISH\r\n");
+		uart_write(3, "FINISH\r\n", 1);
 		controller_auto_state = Wait;
 	}
 	
 	if (log_on && get_ms() - log_last_send_ms >= LOG_PERIOD_MS) {
 		log_last_send_ms = get_ms();
 		create_status_information(status_buf);
-		uart_write(3, status_buf);
+		uart_write(3, status_buf, 1);
 	}
 		
 	if(uart_readline(3, "\r\n", line) == -1) {
@@ -101,9 +101,9 @@ static void update() {
 	}
 	
 	if (strcmp(line, "STATUS")==0) {
-		uart_write(3, "STATUS\r\n");
+		uart_write(3, "STATUS\r\n", 1);
 		create_status_information(status_buf);
-		uart_write(3, status_buf);
+		uart_write(3, status_buf, 1);
 		return;
 	}
 	if (strcmp(line, "LOG ON") == 0) {
@@ -117,21 +117,21 @@ static void update() {
 	if (strcmp(line, "AUTO") == 0) {
 		controller_auto_state = Wait;
 		controller_mode = ModeAuto;
-		uart_write(3, "AUTO\r\n");
-		uart_write(3, "AUTONOMOUS\r\n");
+		uart_write(3, "AUTO\r\n", 1);
+		uart_write(3, "AUTONOMOUS\r\n", 1);
 		return ;
 	}
 	if (strcmp(line, "TEST") == 0) {
 		controller_test_state = Stop;
 		controller_mode = ModeTest;
-		uart_write(3, "TEST\r\n");
-		uart_write(3, "TESTING\r\n");
+		uart_write(3, "TEST\r\n", 1);
+		uart_write(3, "TESTING\r\n", 1);
 		return ;
 	}
 	if (strcmp(line, "MANUAL") == 0) {
 		controller_manual_left = controller_manual_right = 0.0;
 		controller_mode = ModeManual;
-		uart_write(3, "MANUAL\r\n");
+		uart_write(3, "MANUAL\r\n", 1);
 		return ;
 	}
 	if (controller_mode == ModeTest) {
@@ -148,8 +148,8 @@ static void update() {
 				 controller_test_state != RightOngoing) // ignore STOP command while turning
 				controller_test_state = Stop;
 		}
-		uart_write(3, line);
-		uart_write(3, "\r\n");
+		uart_write(3, line, 1);
+		uart_write(3, "\r\n", 1);
 	}
 	else if (controller_mode == ModeAuto) {
 		if (strcmp(line, "STOP")==0) {
@@ -160,8 +160,8 @@ static void update() {
 				controller_auto_state = StartedNew;
 			}
 		}
-		uart_write(3, line);
-		uart_write(3, "\r\n");
+		uart_write(3, line, 1);
+		uart_write(3, "\r\n", 1);
 	}
 	else if (controller_mode == ModeManual) {
 		for (char* cp=line; *cp; cp++)

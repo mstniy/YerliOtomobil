@@ -31,6 +31,7 @@ static const IRQn_Type UART_IRQn[] = {
 
 static char UARTRecvBuffers[4][UART_RECV_BUFFER_LENGTH];
 static CircularQueue UARTSendBuffers[4];
+static volatile int UARTSendLock[4];
 static int	UARTRecvBufferIndexes[4];
 static volatile UARTRecvCallback UARTRecvCallbacks[4];
 
@@ -92,32 +93,49 @@ static void THRBlast(uint8_t uart_id) {
 	}
 }
 
-void uart_write(uint8_t uart_id, const char *s) {
-	uart_write_n(uart_id, s, strlen(s));
+void uart_write(uint8_t uart_id, const char *s, int blocking) {
+	uart_write_n(uart_id, s, strlen(s), blocking);
 }
 
-void uart_write_n(uint8_t uart_id, const char *s, uint32_t len) {
+void uart_write_n(uint8_t uart_id, const char *s, uint32_t len, int blocking) {
 	uint32_t irq_enabled_state;
+	uint32_t pushLen;
 	
-	if (len > UART_SEND_BUFFER_LENGTH) // Too long
+	if (blocking==0 && len > UART_SEND_BUFFER_LENGTH) // Too long
 		return ;
 	
-	// Disable interrupts to avoid race conditions
-	irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
-	NVIC_DisableIRQ(UART_IRQn[uart_id]);
-	
-	if (CQGetLen(&UARTSendBuffers[uart_id]) + len > UART_SEND_BUFFER_LENGTH) { // If the buffer would overflow
-		CQClear(&UARTSendBuffers[uart_id]); // Flush the send buffer
+	while (len>0) {
+		// Disable interrupts to avoid race conditions
+		irq_enabled_state = NVIC_GetEnableIRQ(UART_IRQn[uart_id]);
+		NVIC_DisableIRQ(UART_IRQn[uart_id]);
+		
+		pushLen = UART_SEND_BUFFER_LENGTH-CQGetLen(&UARTSendBuffers[uart_id]);
+		if (len < pushLen)
+			pushLen = len;
+
+		if (blocking==1 && pushLen < len && pushLen == 0) {
+			if (irq_enabled_state)
+				NVIC_EnableIRQ(UART_IRQn[uart_id]);
+			__wfi();
+			continue;
+		}
+		
+		if (blocking==0 && pushLen < len) { // If the buffer would overflow
+			CQClear(&UARTSendBuffers[uart_id]); // Flush the send buffer
+		}
+		
+		CQPush_n(&UARTSendBuffers[uart_id], s, pushLen);
+		
+		if (UART[uart_id]->LSR & (1<<5)) { // If THRE is set, initiate the THRE interrupt loop
+			THRBlast(uart_id);
+		}
+		
+		if (irq_enabled_state)
+			NVIC_EnableIRQ(UART_IRQn[uart_id]);
+		
+		len -= pushLen;
+		s += pushLen;
 	}
-	
-	CQPush_n(&UARTSendBuffers[uart_id], s, len);
-	
-	if (UART[uart_id]->LSR & (1<<5)) { // If THRE is set, initiate the THRE interrupt loop
-		THRBlast(uart_id);
-	}
-	
-	if (irq_enabled_state)
-		NVIC_EnableIRQ(UART_IRQn[uart_id]);
 }
 
 static void UART_IRQHandler(int uart_id) {

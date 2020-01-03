@@ -153,7 +153,7 @@ static void AutoControllerSetMotorStates() {
 		Motors_Set_Scaled_Speed(1, 0.6);
 	}
 	if (acis == SearchTurningLeft) {
-		uart_write(3, "S\r\n");
+		uart_write(3, "S\r\n", 0);
 		Motors_Set_Scaled_Speed(0, -0.8);
 		Motors_Set_Scaled_Speed(1, 0.8);
 	}
@@ -162,7 +162,7 @@ static void AutoControllerSetMotorStates() {
 		Motors_Set_Scaled_Speed(1, 0.6);
 	}
 	else if (acis == GoAwayRight) {
-		uart_write(3, "GA\r\n");
+		uart_write(3, "GA\r\n", 0);
 		Motors_Set_Scaled_Speed(0, 0.8);
 		Motors_Set_Scaled_Speed(1, -0.8);
 	}
@@ -171,7 +171,7 @@ static void AutoControllerSetMotorStates() {
 		Motors_Set_Scaled_Speed(1, 0.6);
 	}
 	else if (acis == ComeCloseLeft) {
-		uart_write(3, "CC\r\n");
+		uart_write(3, "CC\r\n", 0);
 		Motors_Set_Scaled_Speed(0, -1);
 		Motors_Set_Scaled_Speed(1, 1);
 	}
