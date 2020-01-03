@@ -33,8 +33,8 @@ static void init() {
 	Offboard_LEDs_Init();
 	Onboard_LEDs_Init();
 	uart_init(0, 115200);
-	uart_attach_recv_callback(0, serial_recv_callback);
-	uart_attach_recv_callback(3, hm10_recv_callback);
+	//uart_attach_recv_callback(0, serial_recv_callback);
+	//uart_attach_recv_callback(3, hm10_recv_callback);
 	uart_write(0, "Hello!\r\n");
 	hm10_init("YerliOtomobil");
 	uart_write(3, "TESTING\r\n");

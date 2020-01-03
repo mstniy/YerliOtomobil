@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define CQ_CAPACITY 128
+#define CQ_CAPACITY 256
 
 typedef struct {
 	char buf[CQ_CAPACITY];

@@ -112,7 +112,7 @@ void uart_write_n(uint8_t uart_id, const char *s, uint32_t len) {
 	
 	CQPush_n(&UARTSendBuffers[uart_id], s, len);
 	
-	if ((UART[uart_id]->LSR & (1<<5)) == 0) { // If THRE is set, initiate the THRE interrupt loop
+	if (UART[uart_id]->LSR & (1<<5)) { // If THRE is set, initiate the THRE interrupt loop
 		THRBlast(uart_id);
 	}
 	
