@@ -220,7 +220,7 @@ static void AutoControllerChangeState(AutoControllerInternalState _acis) {
 		Offboard_LEDs_Left();
 	}
 	correction_action_start_ms = get_ms();
-	uart_write(3, autoInternalStateToString(acis), 0);
+	//uart_write(3, autoInternalStateToString(acis), 0);
 }
 
 static void Controller_Auto_Update() {
@@ -302,22 +302,22 @@ static void Controller_Auto_Update() {
 	}
 	else if (acis == ComeCloseRight) {
 		if (lastCM <= ULTRASOUND_FAULT_THRESHOLD_CM) {
-			uart_write(3, "CCR found\r\n", 0);
+			//uart_write(3, "CCR found\r\n", 0);
 			AutoControllerChangeState(Usual);
 		}
 		if (get_ms() - correction_action_start_ms >= 750) {
-			uart_write(3, "CCR tout\r\n", 0);
+			//uart_write(3, "CCR tout\r\n", 0);
 			AutoControllerChangeState(ComeCloseLeftAgain);
 		}
 		return ;
 	}
 	else if (acis == ComeCloseLeftAgain) {
 		if (lastCM <= ULTRASOUND_FAULT_THRESHOLD_CM) {
-			uart_write(3, "CCLA found\r\n", 0);
+			//uart_write(3, "CCLA found\r\n", 0);
 			AutoControllerChangeState(Usual);
 		}
 		if (get_ms() - correction_action_start_ms >= 850) {
-			uart_write(3, "CCLA tout\r\n", 0);
+			//uart_write(3, "CCLA tout\r\n", 0);
 			AutoControllerChangeState(SearchTurningLeft);
 		}
 		return ;
