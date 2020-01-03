@@ -90,13 +90,13 @@ static void update() {
 		controller_auto_state = Wait;
 	}
 	
-	if (log_on && get_ms() - log_last_send_ms >= LOG_PERIOD_MS) {
-		log_last_send_ms = get_ms();
-		create_status_information(status_buf);
-		uart_write(3, status_buf, 1);
-	}
 		
-	if(uart_readline(3, "\r\n", line) == -1) {
+	if(uart_readline(3, "\r\n", line) == -1) { // Commands have higher priority than sending log lines
+		if (log_on && get_ms() - log_last_send_ms >= LOG_PERIOD_MS) {
+			log_last_send_ms = get_ms();
+			create_status_information(status_buf);
+			uart_write(3, status_buf, 1);
+		}
 		return;
 	}
 	
