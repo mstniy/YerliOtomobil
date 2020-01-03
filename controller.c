@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "controller.h"
 #include "LPC407x_8x_177x_8x.h"
@@ -29,6 +30,7 @@ typedef enum {
 
 static AutoControllerInternalState acis = Usual;
 static double lasts[3] = {0};
+static int bright_light_count=0;
 static int lasts_size = 0;
 static int correction_action_start_ms;
 
@@ -71,7 +73,7 @@ static void motors_backward() {
 }
 
 static int check_bright_light() {
-	return ADC_GetLastValueOfLeftLDR() >= 300 || ADC_GetLastValueOfRightLDR() >= 300;
+	return ADC_GetLastValueOfLeftLDR() >= 500 || ADC_GetLastValueOfRightLDR() >= 500;
 }
 
 static void Controller_Test_Update() {	
@@ -223,6 +225,7 @@ static void AutoControllerChangeState(AutoControllerInternalState _acis) {
 
 static void Controller_Auto_Update() {
 	double minCM, lastCM;
+	//static char tmp[64];
 	
 	if (controller_auto_state != StartedNew && controller_auto_state != StartedStale) {
 		motors_stop();
@@ -231,16 +234,24 @@ static void Controller_Auto_Update() {
 	
 	if (controller_auto_state == StartedNew) {
 		lasts_size = 0;
+		bright_light_count = 0;
 		controller_auto_state = StartedStale;
 		AutoControllerChangeState(Usual);
 		return ;
 	}
 	
 	if (check_bright_light()) {
-		controller_auto_state = StoppedNew;
-		motors_stop();
-		return ;
+		bright_light_count++;
+		if (bright_light_count >= 3) {
+			motors_stop();
+			controller_auto_state = StoppedNew;
+			//sprintf(tmp, "bright:%d %d\r\n", ADC_GetLastValueOfLeftLDR(), ADC_GetLastValueOfRightLDR());
+			//uart_write(3, tmp, 1);
+			return ;
+		}
 	}
+	else
+		bright_light_count = 0;
 	
 	memmove(lasts, lasts+1, 2*sizeof(double));
 	lasts[2] = ultrasonicSensorLastMeasurementCM;
