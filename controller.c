@@ -149,8 +149,8 @@ void Controller_Test_Update() {
 
 static void AutoControllerSetMotorStates() {
 	if (acis == Usual) {
-		Motors_Set_Scaled_Speed(0, 0.6); // "Usual" does not have a fixed speed, it may try to nodge the vehicle to the left or to the right, if the distance error is small enough. But this is a nice approximation.
-		Motors_Set_Scaled_Speed(1, 0.6);
+		Motors_Set_Scaled_Speed(0, 0.9); // "Usual" does not have a fixed speed, it may try to nodge the vehicle to the left or to the right, if the distance error is small enough. But this is a nice approximation.
+		Motors_Set_Scaled_Speed(1, 0.9);
 	}
 	if (acis == SearchTurningLeft) {
 		uart_write(3, "S\r\n", 0);
@@ -158,8 +158,8 @@ static void AutoControllerSetMotorStates() {
 		Motors_Set_Scaled_Speed(1, 0.8);
 	}
 	else if (acis == SearchForward) {
-		Motors_Set_Scaled_Speed(0, 0.6);
-		Motors_Set_Scaled_Speed(1, 0.6);
+		Motors_Set_Scaled_Speed(0, 0.8);
+		Motors_Set_Scaled_Speed(1, 0.8);
 	}
 	else if (acis == GoAwayRight) {
 		uart_write(3, "GA\r\n", 0);
@@ -167,8 +167,8 @@ static void AutoControllerSetMotorStates() {
 		Motors_Set_Scaled_Speed(1, -0.8);
 	}
 	else if (acis == GoAwayForward) {
-		Motors_Set_Scaled_Speed(0, 0.6);
-		Motors_Set_Scaled_Speed(1, 0.6);
+		Motors_Set_Scaled_Speed(0, 1);
+		Motors_Set_Scaled_Speed(1, 1);
 	}
 	else if (acis == ComeCloseLeft) {
 		uart_write(3, "CC\r\n", 0);
@@ -234,7 +234,7 @@ void Controller_Auto_Update() {
 	else if (acis == SearchForward) {
 		if (minCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
-		if (get_ms() - correction_action_start_ms >= 750)
+		if (get_ms() - correction_action_start_ms >= 800)
 			AutoControllerChangeState(SearchTurningLeft);
 		return ;
 	}
@@ -244,7 +244,7 @@ void Controller_Auto_Update() {
 		return ;
 	}
 	else if (acis == GoAwayForward) {
-		if (get_ms() - correction_action_start_ms >= 500)
+		if (get_ms() - correction_action_start_ms >= 300)
 			AutoControllerChangeState(Usual);
 		return ;
 	}
