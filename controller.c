@@ -234,7 +234,7 @@ void Controller_Auto_Update() {
 	else if (acis == SearchForward) {
 		if (minCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
-		if (get_ms() - correction_action_start_ms >= 750)
+		if (get_ms() - correction_action_start_ms >= 1000)
 			AutoControllerChangeState(SearchTurningLeft);
 		return ;
 	}
