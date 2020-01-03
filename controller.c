@@ -24,7 +24,7 @@ typedef enum {
 	Usual=0,
 	SearchTurningLeft, SearchForward, // Will loop until a wall is found
 	GoAwayRight, GoAwayForward,
-	ComeCloseLeft, ComeCloseForward, ComeCloseRight
+	ComeCloseLeft, ComeCloseForward, ComeCloseRight, ComeCloseLeftAgain
 } AutoControllerInternalState;
 
 static AutoControllerInternalState acis = Usual;
@@ -147,13 +147,35 @@ void Controller_Test_Update() {
 	return b;
 }*/
 
+static const char* autoInternalStateToString(AutoControllerInternalState acis) {
+	if (acis == Usual)
+		return "Usual\r\n";
+	if (acis == SearchTurningLeft)
+		return "SearchLeft\r\n";
+	else if (acis == SearchForward)
+		return "SearchFwd\r\n";
+	else if (acis == GoAwayRight)
+		return "AwayRight\r\n";
+	else if (acis == GoAwayForward)
+		return "AwayFwd\r\n";
+	else if (acis == ComeCloseLeft)
+		return "CloseLeft\r\n";
+	else if (acis == ComeCloseForward)
+		return "CloseFwd\r\n";
+	else if (acis == ComeCloseRight)
+		return "CloseRight\r\n";
+	else if (acis == ComeCloseLeftAgain)
+		return "CloseLeftAgain\r\n";
+	else
+		return "UNKNOWN";
+}
+
 static void AutoControllerSetMotorStates() {
 	if (acis == Usual) {
 		Motors_Set_Scaled_Speed(0, 0.9); // "Usual" does not have a fixed speed, it may try to nodge the vehicle to the left or to the right, if the distance error is small enough. But this is a nice approximation.
 		Motors_Set_Scaled_Speed(1, 0.9);
 	}
 	if (acis == SearchTurningLeft) {
-		uart_write(3, "S\r\n", 0);
 		Motors_Set_Scaled_Speed(0, -0.8);
 		Motors_Set_Scaled_Speed(1, 0.8);
 	}
@@ -162,7 +184,6 @@ static void AutoControllerSetMotorStates() {
 		Motors_Set_Scaled_Speed(1, 0.8);
 	}
 	else if (acis == GoAwayRight) {
-		uart_write(3, "GA\r\n", 0);
 		Motors_Set_Scaled_Speed(0, 0.8);
 		Motors_Set_Scaled_Speed(1, -0.8);
 	}
@@ -171,7 +192,6 @@ static void AutoControllerSetMotorStates() {
 		Motors_Set_Scaled_Speed(1, 1);
 	}
 	else if (acis == ComeCloseLeft) {
-		uart_write(3, "CC\r\n", 0);
 		Motors_Set_Scaled_Speed(0, -1);
 		Motors_Set_Scaled_Speed(1, 1);
 	}
@@ -180,8 +200,12 @@ static void AutoControllerSetMotorStates() {
 		Motors_Set_Scaled_Speed(1, 0.6);
 	}
 	else if (acis == ComeCloseRight) {
-		Motors_Set_Scaled_Speed(0, 0.8);
-		Motors_Set_Scaled_Speed(1, -0.8);
+		Motors_Set_Scaled_Speed(0, 1);
+		Motors_Set_Scaled_Speed(1, -1);
+	}
+	else if (acis == ComeCloseLeftAgain) {
+		Motors_Set_Scaled_Speed(0, -1);
+		Motors_Set_Scaled_Speed(1, 1);
 	}
 }
 
@@ -189,10 +213,11 @@ static void AutoControllerChangeState(AutoControllerInternalState _acis) {
 	acis = _acis;
 	AutoControllerSetMotorStates();
 	correction_action_start_ms = get_ms();
+	uart_write(3, autoInternalStateToString(acis), 0);
 }
 
 void Controller_Auto_Update() {
-	double minCM;
+	double minCM, lastCM;
 	
 	if (controller_auto_state != StartedNew && controller_auto_state != StartedStale) {
 		motors_stop();
@@ -214,6 +239,7 @@ void Controller_Auto_Update() {
 	
 	memmove(lasts, lasts+1, 2*sizeof(double));
 	lasts[2] = ultrasonicSensorLastMeasurementCM;
+	lastCM = lasts[2];
 	lasts_size++;
 	if (lasts_size>=3) {
 		minCM = lasts[0];
@@ -225,14 +251,14 @@ void Controller_Auto_Update() {
 	}
 	
 	if (acis == SearchTurningLeft) {
-		if (minCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
+		if (lastCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
 		if (get_ms() - correction_action_start_ms >= 400)
 			AutoControllerChangeState(SearchForward);
 		return ;
 	}
 	else if (acis == SearchForward) {
-		if (minCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
+		if (lastCM <= ULTRASOUND_FAULT_THRESHOLD_CM)
 			AutoControllerChangeState(Usual);
 		if (get_ms() - correction_action_start_ms >= 800)
 			AutoControllerChangeState(SearchTurningLeft);
@@ -254,13 +280,30 @@ void Controller_Auto_Update() {
 		return ;
 	}
 	else if (acis == ComeCloseForward) {
-		if (get_ms() - correction_action_start_ms >= 200)
+		if (get_ms() - correction_action_start_ms >= 350)
 			AutoControllerChangeState(ComeCloseRight);
 		return ;
 	}
 	else if (acis == ComeCloseRight) {
-		if (get_ms() - correction_action_start_ms >= 200)
+		if (lastCM <= ULTRASOUND_FAULT_THRESHOLD_CM) {
+			uart_write(3, "CCR found\r\n", 0);
 			AutoControllerChangeState(Usual);
+		}
+		if (get_ms() - correction_action_start_ms >= 750) {
+			uart_write(3, "CCR tout\r\n", 0);
+			AutoControllerChangeState(ComeCloseLeftAgain);
+		}
+		return ;
+	}
+	else if (acis == ComeCloseLeftAgain) {
+		if (lastCM <= ULTRASOUND_FAULT_THRESHOLD_CM) {
+			uart_write(3, "CCLA found\r\n", 0);
+			AutoControllerChangeState(Usual);
+		}
+		if (get_ms() - correction_action_start_ms >= 850) {
+			uart_write(3, "CCLA tout\r\n", 0);
+			AutoControllerChangeState(SearchTurningLeft);
+		}
 		return ;
 	}
 	
@@ -276,11 +319,11 @@ void Controller_Auto_Update() {
 		Motors_Set_Scaled_Speed(0, 1);
 		Motors_Set_Scaled_Speed(1, 0.3);
 	}
-	/*else if (lasts_size>=3 && minCM > 35) {
+	else if (lasts_size>=3 && minCM > 40) {
 		AutoControllerChangeState(ComeCloseLeft);
-	}*/
+	}
 	else if (minCM > 30) {
-		Motors_Set_Scaled_Speed(0, 0.3);
+		Motors_Set_Scaled_Speed(0, 0.4);
 		Motors_Set_Scaled_Speed(1, 1);
 	}
 	else {
